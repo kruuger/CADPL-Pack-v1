@@ -1,4 +1,4 @@
-; =========================================================================================== ;s
+; =========================================================================================== ;
 ; Okno dialogowe "edit_box" / "edit_box" dialog control                                       ;
 ;  Data      [LIST]     - argumetny (maks. 7) / arguments (max. 7) | (list a b c d e f g)     ;
 ;   * STR - dowolny lancuch / any string                                                      ;
