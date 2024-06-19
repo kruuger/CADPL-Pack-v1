@@ -1,10 +1,14 @@
 CADPL-Pack-v1 jest zestawem narzędzi programistycznych, tworzonych przez entuzjastów, a zarazem ekspertów w dziedzinie aplikacji pisanych w środowisku CAD.
 
 Językami programowania, które są wykorzystywane przy tworzeniu w/w narzędzi, są:
-  AutoLISP© -> http://pl.wikipedia.org/wiki/AutoLISP
-  Visual Lisp© -> http://www.afralisp.net/visual-lisp/
-  DCL© -> https://autolisp-exchange.com/Tutorials/MyDialogs.htm
-  DIESEL©
+
+AutoLISP© -> http://pl.wikipedia.org/wiki/AutoLISP
+
+Visual Lisp© -> http://www.afralisp.net/visual-lisp/
+
+DCL© -> https://autolisp-exchange.com/Tutorials/MyDialogs.htm
+
+DIESEL©
 
 Pliki:
 Aktualną wersję pakietu, można pobrać stąd: ???
