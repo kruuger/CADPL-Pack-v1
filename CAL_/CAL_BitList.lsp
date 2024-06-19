@@ -1,23 +1,20 @@
 ; =========================================================================================== ;
-; Tworzy ciag arytmetyczny / Creates arithmetic sequence                                      ;
-;  St [REAL/INT] - liczba poczatkowa / initial number                                         ;
-;  Le [REAL/INT] - dlugosc ciagu / sequence length                                            ;
-;  Sp [REAL/INT] - roznica ciagu  / sequence difference                                       ;
+; Lista bitow liczby calkowitej / List of bits integer                                        ;
+;  Number [INT] - liczba calkowita / integer number                                           ;
 ; ------------------------------------------------------------------------------------------- ;
-; (cd:CAL_Sequence 1.50 10 0.5)                                                               ;
+; (cd:CAL_BitList 127)                                                                        ;
 ; =========================================================================================== ;
-(defun cd:CAL_Sequence (St Le Sp / res)
-  (if (vl-every (quote numberp) (list St Le Sp))
-    (progn
-      (setq res (list St))
-      (repeat (fix (1- Le))
-        (setq res (cons
-                    (setq St (+ St Sp))
-                    res
-                  )
-        )
-      )
-      (reverse res)
+(defun cd:CAL_BitList (Number / n res)
+  (setq n 1)
+  (while (>= Number n)
+    (and
+      (= (logand Number n) n)
+      (setq res (cons n res))
     )
+    (setq n (lsh n 1))
+  )
+  (if res
+    (reverse res)
+    (list Number)
   )
 )
