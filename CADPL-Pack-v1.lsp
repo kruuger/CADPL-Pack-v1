@@ -1,6 +1,6 @@
 ;;; ======================================================================================= ;;;
 ;;; CADPL-Pack-v1.lsp                                                                       ;;;
-;;; [2024-06-19]                                                                            ;;;
+;;; [2025-03-02]                                                                            ;;;
 ;;; ======================================================================================= ;;;
 
 ; [ACX] ===================================================================================== ;
@@ -13,6 +13,7 @@
 ; cd:ACX_AddTable         - Tworzy obiekt typu ACAD_TABLE / Creates a ACAD_TABLE object       ;
 ; cd:ACX_AddText          - Tworzy obiekt typu TEXT / Creates a TEXT object                   ;
 ; cd:ACX_AddTextStyle     - Tworzy nowy stylu tekstu / Creates a new text style               ;
+; cd:ACX_AddUcs           - Tworzy obiekt typu UCS / Creates a UCS object                     ;
 ; cd:ACX_AddViewport      - Tworzy obiekt typu VIEWPORT / Creates a VIEWPORT object           ;
 ; cd:ACX_AddXline         - Tworzy obiekt typu XLINE / Creates a XLINE object                 ;
 ; cd:ACX_ADoc             - Aktywny dokument / Active document                                ;
@@ -27,6 +28,7 @@
 ; cd:ACX_Paper            - Obszar papieru / Paper space                                      ;
 ; cd:ACX_SetProp          - Zmienia cechy obiektu VLA / Sets the property of VLA-Object       ;
 ; cd:ACX_TextStyles       - Kolekcja TextStyles / TextStyles collection                       ;
+; cd:ACX_Ucss             - Kolekcja Ucss / Ucss collection                                   ;
 ; cd:ACX_Views            - Kolekcja Views / Views collection                                 ;
 ;                                                                                             ;
 ; [BLK] ===================================================================================== ;
@@ -155,6 +157,9 @@
 ; cd:SYS_UndoEnd          - Koniec grupy operacji / End of group operations                   ;
 ; cd:SYS_WriteFile        - Zapisuje plik tekstowy / Writes the text file                     ;
 ;                                                                                             ;
+; [UCS] ===================================================================================== ;
+; cd:UCS_Ucs2VLA          - Zmiana nazwy ucs na obiekt VLA / Convert ucs name to VLA-Object   ;
+;                                                                                             ;
 ; [USR] ===================================================================================== ;
 ; cd:USR_EntSelObj        - Wybiera zadane obiekty / Select a desired object                  ;
 ; cd:USR_GetCorner        - Pobiera drugi naroznik prostokata / Get second corner of rectangle;
@@ -185,18 +190,18 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddArc (cd:ACX_ASpace) '(1 5 0) 5 0 pi T)                                           ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddArc (Space Pc Radius As Ae ActUcs / zdir xang obj)
+(defun cd:ACX_AddArc (Space Pc Radius As Ae ActUcs / zdir xang obj) 
   (setq zdir (trans '(0 0 1) 1 0 T)
         xang (angle '(0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (setq obj (vla-AddArc Space
+  (setq obj (vla-AddArc Space 
                         (vlax-3d-point (trans Pc 1 0))
                         Radius
                         (+ As xang)
                         (+ Ae xang)
             )
   )
-  (if (not ActUcs)
+  (if (not ActUcs) 
     (vla-put-normal obj (vlax-3d-point '(0 0 1)))
   )
   obj
@@ -212,14 +217,14 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddCircle (cd:ACX_ASpace) '(1 5 0) 5 T)                                             ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddCircle (Space Pc Radius ActUcs / obj)
-  (setq obj (vla-AddCircle
+(defun cd:ACX_AddCircle (Space Pc Radius ActUcs / obj) 
+  (setq obj (vla-AddCircle 
               Space
               (vlax-3d-point (trans Pc 1 0))
               Radius
             )
   )
-  (if (not ActUcs)
+  (if (not ActUcs) 
     (vla-put-normal obj (vlax-3d-point '(0 0 1)))
   )
   obj
@@ -230,10 +235,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddLayer "ABC")                                                                     ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddLayer (Name)
-  (if (tblobjname "LAYER" Name)
+(defun cd:ACX_AddLayer (Name) 
+  (if (tblobjname "LAYER" Name) 
     (vla-item (cd:ACX_Layers) Name)
-    (if (snvalid Name 0)
+    (if (snvalid Name 0) 
       (vla-add (cd:ACX_Layers) Name)
     )
   )
@@ -249,13 +254,13 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddLine (cd:ACX_ASpace) '(20 10 0) '(100 50 0) T)                                   ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddLine (Space Ps Pe ActUcs / obj)
-  (setq obj (vla-AddLine Space
+(defun cd:ACX_AddLine (Space Ps Pe ActUcs / obj) 
+  (setq obj (vla-AddLine Space 
                          (vlax-3d-point (trans Ps 1 0))
                          (vlax-3d-point (trans Pe 1 0))
             )
   )
-  (if (not ActUcs)
+  (if (not ActUcs) 
     (vla-put-normal obj (vlax-3d-point '(0 0 1)))
   )
   obj
@@ -269,18 +274,18 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddLWPolyline (cd:ACX_ASpace) (list '(5 5) '(15 5) '(15 10) '(10 10)) nil)          ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddLWPolyline (Space Pts Closed / obj)
-  (setq Pts (apply
+(defun cd:ACX_AddLWPolyline (Space Pts Closed / obj) 
+  (setq Pts (apply 
               (quote append)
-              (mapcar
-                (function
-                  (lambda (%)
+              (mapcar 
+                (function 
+                  (lambda (%) 
                     (list (car %) (cadr %))
                   )
                 )
-                (mapcar
-                  (function
-                    (lambda (%)
+                (mapcar 
+                  (function 
+                    (lambda (%) 
                       (trans % 1 (trans '(0 0 1) 1 0 T))
                     )
                   )
@@ -289,11 +294,11 @@
               )
             )
   )
-  (setq obj (vla-AddLightweightPolyline Space
-                                        (vlax-make-variant
-                                          (vlax-safearray-fill
-                                            (vlax-make-safearray vlax-vbdouble
-                                                                 (cons 0
+  (setq obj (vla-AddLightweightPolyline Space 
+                                        (vlax-make-variant 
+                                          (vlax-safearray-fill 
+                                            (vlax-make-safearray vlax-vbdouble 
+                                                                 (cons 0 
                                                                        (1- (length Pts))
                                                                  )
                                             )
@@ -315,9 +320,9 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddMText (cd:ACX_ASpace) "NEW_MTEXT" (getpoint) 1.5 (/ pi 4))                       ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddMText (Space Str Pb Width Rot / obj)
-  (vla-put-rotation
-    (setq obj (vla-AddMText Space
+(defun cd:ACX_AddMText (Space Str Pb Width Rot / obj) 
+  (vla-put-rotation 
+    (setq obj (vla-AddMText Space 
                             (vlax-3d-point (trans Pb 1 0))
                             Width
                             Str
@@ -338,8 +343,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddTable (cd:ACX_ASpace) (getpoint) 5 5 10 30)                                      ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddTable (Space Pb Rows Cols RowH ColH)
-  (vla-AddTable
+(defun cd:ACX_AddTable (Space Pb Rows Cols RowH ColH) 
+  (vla-AddTable 
     Space
     (vlax-3d-point (trans Pb 1 0))
     Rows
@@ -358,12 +363,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddText (cd:ACX_ASpace) "NEW_TEXT" (getpoint) 1.5 (/ pi 4))                         ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddText (Space Str Pb Height Rot / zdir xang obj)
+(defun cd:ACX_AddText (Space Str Pb Height Rot / zdir xang obj) 
   (setq zdir (trans '(0 0 1) 1 0 T)
         xang (angle '(0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (vla-put-rotation
-    (setq obj (vla-AddText Space
+  (vla-put-rotation 
+    (setq obj (vla-AddText Space 
                            Str
                            (vlax-3d-point (trans Pb 1 0))
                            Height
@@ -379,12 +384,30 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddTextStyle "ABC")                                                                 ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddTextStyle (Name)
-  (if (tblobjname "STYLE" Name)
+(defun cd:ACX_AddTextStyle (Name) 
+  (if (tblobjname "STYLE" Name) 
     (vla-item (cd:ACX_TextStyles) Name)
-    (if (snvalid Name 0)
+    (if (snvalid Name 0) 
       (vla-add (cd:ACX_TextStyles) Name)
     )
+  )
+)
+; =========================================================================================== ;
+; Tworzy obiekt typu UCS / Creates a UCS object                                               ;
+;   Name     [STR]  - nazwa ukladu wspolrzednych / coordinate system name                     ;
+;   Origin   [LIST] - punkt bazowy / base point                                               ;
+;   X-Vector [LIST] - wektor x / x-vector                                                     ;
+;   Y-Vector [LIST] - wektor y / y-vector                                                     ;
+; ------------------------------------------------------------------------------------------- ;
+; (cd:ACX_AddUcs "Up" '(0. 0. 0.) '(1. 0. 0.) '(0. 1. 0.))                                    ;
+; =========================================================================================== ;
+(defun cd:ACX_AddUcs (Name Origin X-Vector Y-Vector) 
+  (vla-add 
+    (cd:ACX_Ucss)
+    (vlax-3D-Point Origin)
+    (vlax-3D-Point X-Vector)
+    (vlax-3D-Point Y-Vector)
+    Name
   )
 )
 ; =========================================================================================== ;
@@ -400,18 +423,18 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddViewport (cd:ACX_Paper) (getpoint) 100 200 3 2)                                  ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddViewport (Space Pb Width Height HJust VJust / obj)
+(defun cd:ACX_AddViewport (Space Pb Width Height HJust VJust / obj) 
   (setq Pb (trans Pb 1 0))
-  (cond
+  (cond 
     ((= HJust 1) (setq Pb (list (+ (car Pb) (/ Width 2)) (cadr Pb) (caddr Pb))))
     ((= HJust 3) (setq Pb (list (- (car Pb) (/ Width 2)) (cadr Pb) (caddr Pb))))
   )
-  (cond
+  (cond 
     ((= VJust 1) (setq Pb (list (car Pb) (- (cadr Pb) (/ Height 2)) (caddr Pb))))
     ((= VJust 3) (setq Pb (list (car Pb) (+ (cadr Pb) (/ Height 2)) (caddr Pb))))
   )
-  (vla-Display
-    (setq obj (vla-AddPViewport
+  (vla-Display 
+    (setq obj (vla-AddPViewport 
                 Space
                 (vlax-3d-point Pb)
                 Width
@@ -430,12 +453,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_AddXline (cd:ACX_ASpace) (getpoint) (/ pi 4))                                       ;
 ; =========================================================================================== ;
-(defun cd:ACX_AddXline (Space Ps Pe)
-  (vla-AddXline
+(defun cd:ACX_AddXline (Space Ps Pe) 
+  (vla-AddXline 
     Space
     (vlax-3d-point (trans Ps 1 0))
-    (vlax-3d-point
-      (cond
+    (vlax-3d-point 
+      (cond 
         ((numberp Pe)
          (trans (polar Ps Pe 1) 1 0)
         )
@@ -449,8 +472,8 @@
 ; =========================================================================================== ;
 ; Aktywny dokument / Active document                                                          ;
 ; =========================================================================================== ;
-(defun cd:ACX_ADoc ()
-  (or
+(defun cd:ACX_ADoc () 
+  (or 
     *cd-ActiveDocument*
     (setq *cd-ActiveDocument* (vla-get-ActiveDocument (vlax-get-acad-object)))
   )
@@ -459,8 +482,8 @@
 ; =========================================================================================== ;
 ; Aktywny obszar / Active space                                                               ;
 ; =========================================================================================== ;
-(defun cd:ACX_ASpace ()
-  (if (= (getvar "CVPORT") 1)
+(defun cd:ACX_ASpace () 
+  (if (= (getvar "CVPORT") 1) 
     (vla-item (cd:ACX_Blocks) "*Paper_Space")
     (cd:ACX_Model)
   )
@@ -468,8 +491,8 @@
 ; =========================================================================================== ;
 ; Kolekcja Blocks / Blocks collection                                                         ;
 ; =========================================================================================== ;
-(defun cd:ACX_Blocks ()
-  (or
+(defun cd:ACX_Blocks () 
+  (or 
     *cd-Blocks*
     (setq *cd-Blocks* (vla-get-blocks (cd:ACX_ADoc)))
   )
@@ -482,17 +505,17 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_GetProp (entlast) '("LineType" "Color" "Layer"))                                    ;
 ; =========================================================================================== ;
-(defun cd:ACX_GetProp (Obj Lst)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:ACX_GetProp (Obj Lst) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (mapcar
-    (function
-      (lambda (% / %1)
-        (cons %
-              (if (vlax-property-available-p Obj % nil)
-                (if
-                  (not
+  (mapcar 
+    (function 
+      (lambda (% / %1) 
+        (cons % 
+              (if (vlax-property-available-p Obj % nil) 
+                (if 
+                  (not 
                     (setq %1 (cd:SYS_CheckError (list vlax-get-property Obj %)))
                   )
                   :vlax-false
@@ -509,8 +532,8 @@
 ; =========================================================================================== ;
 ; Kolekcja Layers / Layers collection                                                         ;
 ; =========================================================================================== ;
-(defun cd:ACX_Layers ()
-  (or
+(defun cd:ACX_Layers () 
+  (or 
     *cd-Layers*
     (setq *cd-Layers* (vla-get-Layers (cd:ACX_ADoc)))
   )
@@ -519,8 +542,8 @@
 ; =========================================================================================== ;
 ; Kolekcja Layouts / Layouts collection                                                       ;
 ; =========================================================================================== ;
-(defun cd:ACX_Layouts ()
-  (or
+(defun cd:ACX_Layouts () 
+  (or 
     *cd-Layouts*
     (setq *cd-Layouts* (vla-get-layouts (cd:ACX_ADoc)))
   )
@@ -529,8 +552,8 @@
 ; =========================================================================================== ;
 ; Kolekcja LineTypes / LineTypes collection                                                   ;
 ; =========================================================================================== ;
-(defun cd:ACX_LineTypes ()
-  (or
+(defun cd:ACX_LineTypes () 
+  (or 
     *cd-LineTypes*
     (setq *cd-LineTypes* (vla-get-LineTypes (cd:ACX_ADoc)))
   )
@@ -543,11 +566,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_LoadLineType "HIDDEN" "acadiso.lin")                                                ;
 ; =========================================================================================== ;
-(defun cd:ACX_LoadLineType (Name File / res)
-  (setq res (if (tblobjname "LTYPE" Name)
+(defun cd:ACX_LoadLineType (Name File / res) 
+  (setq res (if (tblobjname "LTYPE" Name) 
               (vla-item (cd:ACX_LineTypes) Name)
-              (if (snvalid Name 0)
-                (vl-catch-all-apply
+              (if (snvalid Name 0) 
+                (vl-catch-all-apply 
                   (quote vla-load)
                   (list (cd:ACX_LineTypes) Name File)
                 )
@@ -559,8 +582,8 @@
 ; =========================================================================================== ;
 ; Obszar modelu / Model space                                                                 ;
 ; =========================================================================================== ;
-(defun cd:ACX_Model ()
-  (or
+(defun cd:ACX_Model () 
+  (or 
     *cd-ModelSpace*
     (setq *cd-ModelSpace* (vla-get-ModelSpace (cd:ACX_ADoc)))
   )
@@ -569,7 +592,7 @@
 ; =========================================================================================== ;
 ; Obszar papieru / Paper space                                                                ;
 ; =========================================================================================== ;
-(defun cd:ACX_Paper ()
+(defun cd:ACX_Paper () 
   (setq *cd-PaperSpace* (vla-get-PaperSpace (cd:ACX_ADoc)))
 )
 ; =========================================================================================== ;
@@ -579,23 +602,23 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_SetProp  (entlast) '(("LineType" . "BLA")("Color" . 1)("Layer" . "0")))             ;
 ; =========================================================================================== ;
-(defun cd:ACX_SetProp (Obj Lst)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:ACX_SetProp (Obj Lst) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (if (vlax-write-enabled-p Obj)
-    (mapcar
-      (function
-        (lambda (% / %1)
-          (cons
+  (if (vlax-write-enabled-p Obj) 
+    (mapcar 
+      (function 
+        (lambda (% / %1) 
+          (cons 
             (car %)
-            (if (vlax-property-available-p Obj (car %) T)
-              (if
-                (setq %1 (vl-catch-all-apply
+            (if (vlax-property-available-p Obj (car %) T) 
+              (if 
+                (setq %1 (vl-catch-all-apply 
                            (quote vlax-put-property)
-                           (list Obj
+                           (list Obj 
                                  (car %)
-                                 (if (vl-symbolp (cdr %))
+                                 (if (vl-symbolp (cdr %)) 
                                    (eval (cdr %))
                                    (cdr %)
                                  )
@@ -617,18 +640,28 @@
 ; =========================================================================================== ;
 ; Kolekcja TextStyles / TextStyles collection                                                 ;
 ; =========================================================================================== ;
-(defun cd:ACX_TextStyles ()
-  (or
+(defun cd:ACX_TextStyles () 
+  (or 
     *cd-TextStyles*
     (setq *cd-TextStyles* (vla-get-TextStyles (cd:ACX_ADoc)))
   )
   *cd-TextStyles*
 )
 ; =========================================================================================== ;
+; Kolekcja Ucss / Ucss collection                                                             ;
+; =========================================================================================== ;
+(defun cd:ACX_Ucss () 
+  (or 
+    *cd-Ucss*
+    (setq *cd-Ucss* (vla-get-UserCoordinateSystems (cd:ACX_ADoc)))
+  )
+  *cd-Ucss*
+)
+; =========================================================================================== ;
 ; Kolekcja Views / Views collection                                                           ;
 ; =========================================================================================== ;
-(defun cd:ACX_Views ()
-  (or
+(defun cd:ACX_Views () 
+  (or 
     *cd-Views*
     (setq *cd-Views* (vla-get-views (cd:ACX_ADoc)))
   )
@@ -650,16 +683,16 @@
 ; (cd:BLK_AttachXref "C:\\CAD" "Cad" '(5 5 5) '(10 10 10) 0.75 T)                             ;
 ; (cd:BLK_AttachXref "C:\\CAD\\" "Cad" '(5 5 5) '(10 10 10) 0.75 T)                           ;
 ; =========================================================================================== ;
-(defun cd:BLK_AttachXref (Path File Pb Xyz Rot Ovlay / zdir xang res)
+(defun cd:BLK_AttachXref (Path File Pb Xyz Rot Ovlay / zdir xang res) 
   (setq zdir (trans '(0 0 1) 1 0 T)
         xang (angle '(0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (if
-    (not
-      (vl-catch-all-error-p
-        (setq res (vl-catch-all-apply
+  (if 
+    (not 
+      (vl-catch-all-error-p 
+        (setq res (vl-catch-all-apply 
                     (quote vla-AttachExternalReference)
-                    (list
+                    (list 
                       (cd:ACX_ASpace)
                       (strcat (vl-string-right-trim "\\" Path) "\\" File)
                       File
@@ -668,7 +701,7 @@
                       (if (not Xyz) 1.0 (cadr Xyz))
                       (if (not Xyz) 1.0 (caddr Xyz))
                       (if (not Rot) 0.0 (+ Rot xang))
-                      (if Ovlay
+                      (if Ovlay 
                         :vlax-true
                         :vlax-false
                       )
@@ -686,20 +719,20 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetAttEntity (car (entsel)))                                                        ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetAttEntity (Ename / dt ats res)
-  (if
-    (and
+(defun cd:BLK_GetAttEntity (Ename / dt ats res) 
+  (if 
+    (and 
       Ename
       (= "INSERT" (cdr (assoc 0 (setq dt (entget Ename)))))
     )
-    (if
-      (and
+    (if 
+      (and 
         (setq ats (assoc 66 dt))
         (not (zerop (cdr ats)))
       )
-      (reverse
-        (while
-          (/= "SEQEND"
+      (reverse 
+        (while 
+          (/= "SEQEND" 
               (cdr (assoc 0 (entget (setq Ename (entnext Ename)))))
           )
           (setq res (cons Ename res))
@@ -714,12 +747,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetAtts (car (entsel)))                                                             ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetAtts (Ename)
-  (mapcar
-    (function
-      (lambda (% / dt)
+(defun cd:BLK_GetAtts (Ename) 
+  (mapcar 
+    (function 
+      (lambda (% / dt) 
         (setq dt (entget %))
-        (cons
+        (cons 
           (cdr (assoc 2 dt))
           (cdr (assoc 1 dt))
         )
@@ -734,11 +767,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetAttsVLA (vlax-ename->vla-object (car (entsel))))                                 ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetAttsVLA (Obj)
-  (mapcar
-    (function
-      (lambda (%)
-        (cons
+(defun cd:BLK_GetAttsVLA (Obj) 
+  (mapcar 
+    (function 
+      (lambda (%) 
+        (cons 
           (vla-get-TagString %)
           (vla-get-TextString %)
         )
@@ -754,14 +787,14 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetAttValueVLA (car (entsel)) "VIEW_NUMBER")                                        ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetAttValueVLA (Obj Tag)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:BLK_GetAttValueVLA (Obj Tag) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (vl-some
-    (function
-      (lambda (%)
-        (if (eq (strcase tag) (strcase (vla-get-TagString %)))
+  (vl-some 
+    (function 
+      (lambda (%) 
+        (if (eq (strcase tag) (strcase (vla-get-TagString %))) 
           (vla-get-TextString %)
         )
       )
@@ -778,10 +811,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetDynamicProps (car (entsel)) T)                                                   ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetDynamicProps (Obj Origin / _Sub pn res)
-  (defun _Sub ()
-    (setq res (cons
-                (cons
+(defun cd:BLK_GetDynamicProps (Obj Origin / _Sub pn res) 
+  (defun _Sub () 
+    (setq res (cons 
+                (cons 
                   pn
                   (vlax-get % (quote Value))
                 )
@@ -789,12 +822,12 @@
               )
     )
   )
-  (if (= (type Obj) (quote ENAME))
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (foreach % (vlax-invoke Obj (quote GetDynamicBlockProperties))
+  (foreach % (vlax-invoke Obj (quote GetDynamicBlockProperties)) 
     (setq pn (vla-get-PropertyName %))
-    (if Origin
+    (if Origin 
       (_Sub)
       (if (/= (strcase pn) "ORIGIN") (_Sub))
     )
@@ -804,13 +837,13 @@
 ; =========================================================================================== ;
 ; Zwraca liste blokow dynamicznych / Returns a list of dynamic blocks                         ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetDynBlockList ()
-  (mapcar (quote cdadr)
-          (vl-remove nil
-                     (mapcar
-                       (quote
-                         (lambda (%)
-                           (cd:XDT_GetXData
+(defun cd:BLK_GetDynBlockList () 
+  (mapcar (quote cdadr) 
+          (vl-remove nil 
+                     (mapcar 
+                       (quote 
+                         (lambda (%) 
+                           (cd:XDT_GetXData 
                              (cdr (assoc 330 (entget (tblobjname "Block" %))))
                              "AcDbDynamicBlockTrueName*"
                            )
@@ -828,29 +861,29 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetDynBlockNames "NazwaBloku")                                                      ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetDynBlockNames (Name / res n xd handle ent)
+(defun cd:BLK_GetDynBlockNames (Name / res n xd handle ent) 
   (setq res (list Name))
-  (vlax-for % (cd:ACX_Blocks)
-    (if (wcmatch (setq n (vla-get-name %)) "`*U*")
-      (if
-        (setq xd (cd:XDT_GetXData
+  (vlax-for % (cd:ACX_Blocks) 
+    (if (wcmatch (setq n (vla-get-name %)) "`*U*") 
+      (if 
+        (setq xd (cd:XDT_GetXData 
                    (vlax-vla-object->ename %)
                    "AcDbBlockRepBTag"
                  )
         )
-        (if
-          (and
+        (if 
+          (and 
             (setq handle (cdr (assoc 1005 (cdr xd))))
-            (setq ent (handent
+            (setq ent (handent 
                         handle
                       )
             )
-            (=
+            (= 
               (strcase Name)
-              (strcase
-                (cdr
-                  (assoc 2
-                         (entget
+              (strcase 
+                (cdr 
+                  (assoc 2 
+                         (entget 
                            ent
                          )
                   )
@@ -872,21 +905,21 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_GetEntity "*Model_space" nil), (cd:BLK_GetEntity "NAZWA" "*LINE")                   ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetEntity (Name Entity / en dt res)
+(defun cd:BLK_GetEntity (Name Entity / en dt res) 
   (setq en (tblobjname "BLOCK" Name))
-  (while
-    (and
+  (while 
+    (and 
       en
       (setq en (entnext en))
       (setq dt (entget en))
       (/= "ENDBLK" (cdr (assoc 0 dt)))
     )
-    (if
-      (if Entity
+    (if 
+      (if Entity 
         (wcmatch (cdr (assoc 0 dt)) (strcase Entity))
         (cdr (assoc 0 dt))
       )
-      (setq res (cons
+      (setq res (cons 
                   (cdr (assoc -1 dt))
                   res
                 )
@@ -898,9 +931,9 @@
 ; =========================================================================================== ;
 ; Lista odnosnikow zewnetrznych / List of external references                                 ;
 ; =========================================================================================== ;
-(defun cd:BLK_GetXrefs (/ res)
-  (vlax-for % (cd:ACX_Blocks)
-    (if (= (vla-get-IsXref %) :vlax-true)
+(defun cd:BLK_GetXrefs (/ res) 
+  (vlax-for % (cd:ACX_Blocks) 
+    (if (= (vla-get-IsXref %) :vlax-true) 
       (setq res (cons (vla-get-name %) res))
     )
   )
@@ -918,21 +951,21 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_InsertBlock '(0 0 0) "d:\\blok" '(2 2 2) 0 T)                                       ;
 ; =========================================================================================== ;
-(defun cd:BLK_InsertBlock (Pb Name Xyz Rot Sup / zdir xang res)
+(defun cd:BLK_InsertBlock (Pb Name Xyz Rot Sup / zdir xang res) 
   (setq zdir (trans '(0 0 1) 1 0 T)
         xang (angle '(0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (if
-    (not
-      (vl-catch-all-error-p
-        (setq res (vl-catch-all-apply
+  (if 
+    (not 
+      (vl-catch-all-error-p 
+        (setq res (vl-catch-all-apply 
                     (quote vla-InsertBlock)
-                    (list
+                    (list 
                       (cd:ACX_ASpace)
                       (vlax-3d-point (trans Pb 1 0))
-                      (if (tblsearch "BLOCK" Name)
+                      (if (tblsearch "BLOCK" Name) 
                         Name
-                        (if Sup
+                        (if Sup 
                           (findfile (strcat Name ".dwg"))
                           nil
                         )
@@ -955,8 +988,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_IsDynamicInsert (car (entsel)))                                                     ;
 ; =========================================================================================== ;
-(defun cd:BLK_IsDynamicInsert (Obj)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:BLK_IsDynamicInsert (Obj) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
   (= :vlax-true (vla-get-IsDynamicBlock Obj))
@@ -969,15 +1002,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_SetAttValueVLA (car (entsel)) "VIEW_NUMBER" "12")                                   ;
 ; =========================================================================================== ;
-(defun cd:BLK_SetAttValueVLA (Obj Tag Value)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:BLK_SetAttValueVLA (Obj Tag Value) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (vl-some
-    (function
-      (lambda (%)
-        (if (eq (strcase tag) (strcase (vla-get-TagString %)))
-          (progn
+  (vl-some 
+    (function 
+      (lambda (%) 
+        (if (eq (strcase tag) (strcase (vla-get-TagString %))) 
+          (progn 
             (vla-put-TextString % Value)
             Value
           )
@@ -995,22 +1028,22 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:BLK_SetDynamicProps (car (entsel)) "Height" 50)                                         ;
 ; =========================================================================================== ;
-(defun cd:BLK_SetDynamicProps (Obj Prop Val)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:BLK_SetDynamicProps (Obj Prop Val) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (vl-some
-    (function
-      (lambda (%)
-        (if (eq (strcase Prop) (strcase (vla-get-PropertyName %)))
-          (if
-            (not
-              (vl-catch-all-error-p
-                (vl-catch-all-apply
+  (vl-some 
+    (function 
+      (lambda (%) 
+        (if (eq (strcase Prop) (strcase (vla-get-PropertyName %))) 
+          (if 
+            (not 
+              (vl-catch-all-error-p 
+                (vl-catch-all-apply 
                   (quote vla-put-value)
-                  (list
+                  (list 
                     %
-                    (vlax-make-variant
+                    (vlax-make-variant 
                       Val
                       (vlax-variant-type (vla-get-value %))
                     )
@@ -1032,16 +1065,16 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CAL_BitList 127)                                                                        ;
 ; =========================================================================================== ;
-(defun cd:CAL_BitList (Number / n res)
+(defun cd:CAL_BitList (Number / n res) 
   (setq n 1)
-  (while (>= Number n)
-    (and
+  (while (>= Number n) 
+    (and 
       (= (logand Number n) n)
       (setq res (cons n res))
     )
     (setq n (lsh n 1))
   )
-  (if res
+  (if res 
     (reverse res)
     (list Number)
   )
@@ -1054,12 +1087,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CAL_Sequence 1.50 10 0.5)                                                               ;
 ; =========================================================================================== ;
-(defun cd:CAL_Sequence (St Le Sp / res)
-  (if (vl-every (quote numberp) (list St Le Sp))
-    (progn
+(defun cd:CAL_Sequence (St Le Sp / res) 
+  (if (vl-every (quote numberp) (list St Le Sp)) 
+    (progn 
       (setq res (list St))
-      (repeat (fix (1- Le))
-        (setq res (cons
+      (repeat (fix (1- Le)) 
+        (setq res (cons 
                     (setq St (+ St Sp))
                     res
                   )
@@ -1078,11 +1111,11 @@
 ; (cd:CON_All2Str '("A" "B" 1 3) nil) --> ("A" "B" "1" "3")                                   ;
 ; (cd:CON_All2Str '("A" "B" 1 3) T)   --> ("\"A\"" "\"B\"" "1" "3")                           ;
 ; =========================================================================================== ;
-(defun cd:CON_All2Str (Lst Mode)
-  (mapcar
-    (function
-      (lambda (%)
-        (if Mode
+(defun cd:CON_All2Str (Lst Mode) 
+  (mapcar 
+    (function 
+      (lambda (%) 
+        (if Mode 
           (vl-prin1-to-string %)
           (vl-princ-to-string %)
         )
@@ -1097,7 +1130,7 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CON_List2Value (list 0 1 2 3 5)) --> "0 1 2 3 5"                                        ;
 ; =========================================================================================== ;
-(defun cd:CON_List2Value (Lst)
+(defun cd:CON_List2Value (Lst) 
   (vl-string-trim "()" (vl-princ-to-string Lst))
 )
 ; =========================================================================================== ;
@@ -1113,23 +1146,23 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CON_ObjConv (entsel) 2)                                                                 ;
 ; =========================================================================================== ;
-(defun cd:CON_ObjConv (Obj Format / ty res m %)
+(defun cd:CON_ObjConv (Obj Format / ty res m %) 
   (setq ty (type Obj))
-  (if
-    (setq res (cond
+  (if 
+    (setq res (cond 
                 ((= ty (quote ENAME)) Obj)
                 ((= ty (quote VLA-OBJECT)) (vlax-vla-object->ename Obj))
                 ((= ty (quote STR))
-                 (if (<= (strlen Obj) 8)
+                 (if (<= (strlen Obj) 8) 
                    (handent Obj)
                    (cd:CON_ObjConv (read Obj) nil)
                  )
                 )
                 ((= ty (quote INT))
-                 (if (> Obj 0)
-                   (progn
-                     (setq m (if
-                               (wcmatch
+                 (if (> Obj 0) 
+                   (progn 
+                     (setq m (if 
+                               (wcmatch 
                                  (strcase (getenv "PROCESSOR_ARCHITECTURE"))
                                  "*64*"
                                )
@@ -1137,10 +1170,10 @@
                                ""
                              )
                      )
-                     (vl-catch-all-apply
-                       (function
-                         (lambda ()
-                           (setq % (vlax-invoke-method
+                     (vl-catch-all-apply 
+                       (function 
+                         (lambda () 
+                           (setq % (vlax-invoke-method 
                                      (cd:ACX_ADoc)
                                      (strcat "ObjectIDtoObject" m)
                                      Obj
@@ -1156,12 +1189,12 @@
                 (T nil)
               )
     )
-    (cond
+    (cond 
       ((= 1 Format) (vlax-ename->vla-object res))
       ((= 2 Format) (cdr (assoc 5 (entget res))))
       ((= 3 Format) (vla-get-ObjectID (vlax-ename->vla-object res)))
       ((= 4 Format)
-       (vlax-invoke-method
+       (vlax-invoke-method 
          (vla-get-utility (cd:ACX_ADoc))
          "GetObjectIdString"
          (vlax-ename->vla-object res)
@@ -1187,17 +1220,17 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CON_Real2Str 12 2 4)                                                                    ;
 ; =========================================================================================== ;
-(defun cd:CON_Real2Str (Val Unit Prec / DMZ res)
+(defun cd:CON_Real2Str (Val Unit Prec / DMZ res) 
   (setq DMZ (getvar "DIMZIN"))
-  (setvar "DIMZIN"
-          (if (not (member (getvar "LUNITS") (list 4 5)))
+  (setvar "DIMZIN" 
+          (if (not (member (getvar "LUNITS") (list 4 5))) 
             (logand DMZ (~ 8))
             0
           )
   )
-  (setq res (rtos
+  (setq res (rtos 
               Val
-              (if (and Unit (member Unit (list 1 2 3 4 5)))
+              (if (and Unit (member Unit (list 1 2 3 4 5))) 
                 Unit
                 (getvar "LUNITS")
               )
@@ -1216,13 +1249,13 @@
 ; =========================================================================================== ;
 ; (cd:CON_TransMatrix 0)                                                                      ;
 ; =========================================================================================== ;
-(defun cd:CON_TransMatrix (Cs)
-  (vlax-tmatrix
-    (append
-      (mapcar
-        (function
-          (lambda (vector origin)
-            (append
+(defun cd:CON_TransMatrix (Cs) 
+  (vlax-tmatrix 
+    (append 
+      (mapcar 
+        (function 
+          (lambda (vector origin) 
+            (append 
               (trans vector (abs (1- Cs)) Cs T)
               (list origin)
             )
@@ -1241,7 +1274,7 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CON_Value2List "0 1 2 3 5") --> (0 1 2 3 5)                                             ;
 ; =========================================================================================== ;
-(defun cd:CON_Value2List (Val)
+(defun cd:CON_Value2List (Val) 
   (read (strcat "(" Val ")"))
 )
 ; =========================================================================================== ;
@@ -1250,16 +1283,16 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:CON_XYZ2Variant (list 10 2)), (cd:CON_XYZ2Variant (list 4 4 4))                         ;
 ; =========================================================================================== ;
-(defun cd:CON_XYZ2Variant (Lst)
-  (cond
+(defun cd:CON_XYZ2Variant (Lst) 
+  (cond 
     ((listp Lst)
-     (if
-       (and
+     (if 
+       (and 
          (member (length Lst) (list 2 3))
-         (apply (quote and)
-                (mapcar
-                  (function
-                    (lambda (%)
+         (apply (quote and) 
+                (mapcar 
+                  (function 
+                    (lambda (%) 
                       (numberp %)
                     )
                   )
@@ -1270,7 +1303,7 @@
        (vlax-3d-Point Lst)
      )
     )
-    ((and
+    ((and 
        (= (type Lst) (quote VARIANT))
        (= (vlax-variant-type Lst) 8197)
      )
@@ -1287,13 +1320,13 @@
 ;  Col    [STR]  - aktualny kolor / current color                                             ;
 ;  Old    [STR]  - poprzedni kolor / old kolor                                                ;
 ; =========================================================================================== ;
-(defun cd:DCL_ChangeColorList (KeyLst KeyImg Lst Col Old / res cdlg tmp)
+(defun cd:DCL_ChangeColorList (KeyLst KeyImg Lst Col Old / res cdlg tmp) 
   (setq tmp Old)
-  (cond
+  (cond 
     ((= Col "0") (setq res "256"))
     ((= Col "1") (setq res "0"))
     ((= Col "9")
-     (if (setq cdlg (acad_colordlg (atoi tmp)))
+     (if (setq cdlg (acad_colordlg (atoi tmp))) 
        (setq res (itoa cdlg)
              tmp (itoa cdlg)
        )
@@ -1316,16 +1349,16 @@
 ;  Label [STR]  - etykieta dla pozycji "Nowa..." / label for "New..." position                ;
 ;  Func  [SUBR] - funkcja do obslugi okienka edit_box / function to operate edit_box dialog   ;
 ; =========================================================================================== ;
-(defun cd:DCL_ChangeStringList (Key Lst Pos Old Label Func / tmp len res)
+(defun cd:DCL_ChangeStringList (Key Lst Pos Old Label Func / tmp len res) 
   (setq tmp Old
         len (length Lst)
   )
-  (cond
+  (cond 
     ((< Pos len)
      (setq res (nth Pos Lst))
     )
     ((= Pos len)
-     (cond
+     (cond 
        ((setq res (eval Func)))
        ((setq res tmp))
      )
@@ -1340,7 +1373,7 @@
 ;  Key [STR] - nazwa wycinka / tile name                                                      ;
 ;  Col [INT] - kolor / color                                                                  ;
 ; =========================================================================================== ;
-(defun cd:DCL_FillColorImage (Key Col / X Y)
+(defun cd:DCL_FillColorImage (Key Col / X Y) 
   (start_image Key)
   (fill_image 0 0 (dimx_tile Key) (dimy_tile Key) Col)
   (end_image)
@@ -1351,14 +1384,14 @@
 ;  Lst [LIST] - lista kolorow / list of colors                                                ;
 ;  Col [STR]  - aktualny kolor / current color                                                ;
 ; =========================================================================================== ;
-(defun cd:DCL_FillColorList (Key Lst Col)
-  (cond
+(defun cd:DCL_FillColorList (Key Lst Col) 
+  (cond 
     ((= Col "256") (setq Col "0"))
     ((= Col "0") (setq Col "1"))
     (T (setq Col (itoa (1+ (atoi Col)))))
   )
-  (if
-    (and
+  (if 
+    (and 
       (> (atoi Col) 8)
       (<= (atoi Col) 256)
     )
@@ -1376,8 +1409,8 @@
 ;  Str   [STR]  - aktualny lancuch tekstowy / current string                                  ;
 ;  Label [STR]  - etykieta dla pozycji "Nowa..." / label for "New..." position                ;
 ; =========================================================================================== ;
-(defun cd:DCL_FillStringList (Key Lst Str Label / pos)
-  (if (setq pos (vl-position (strcase Str) (mapcar (quote strcase) Lst)))
+(defun cd:DCL_FillStringList (Key Lst Str Label / pos) 
+  (if (setq pos (vl-position (strcase Str) (mapcar (quote strcase) Lst))) 
     (setq Lst (append Lst (list Label)))
     (setq Lst (append Lst (list Label Str))
           pos (1- (length Lst))
@@ -1395,7 +1428,7 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCL_ImgBtnSortIcon "image" 0 15)                                                        ;
 ; =========================================================================================== ;
-(defun cd:DCL_ImgBtnSortIcon (Key Mode Col / x y c n d l)
+(defun cd:DCL_ImgBtnSortIcon (Key Mode Col / x y c n d l) 
   (setq x (dimx_tile Key)
         y (dimy_tile Key)
         c (if (not Col) 252 Col)
@@ -1405,9 +1438,9 @@
   )
   (start_image Key)
   (fill_image 2 2 (- x 2) (- y 2) -15)
-  (mapcar
-    (function
-      (lambda (% / %1 %2)
+  (mapcar 
+    (function 
+      (lambda (% / %1 %2) 
         (setq %1 (nth % (reverse l))
               %2 (if (zerop Mode) (+ d %1) (- d %1))
         )
@@ -1445,12 +1478,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCL_Msgbox "Komunikat\nw 2 liniach" "Uwaga" 4 T 0)                                      ;
 ; =========================================================================================== ;
-(defun cd:DCL_MsgBox (Msg Title Btns DPos Lng / data f tmp dc res l d c h)
+(defun cd:DCL_MsgBox (Msg Title Btns DPos Lng / data f tmp dc res l d c h) 
   (if (not DPos) (setq *cd-TempDlgPosition* (list -1 -1)))
   (setq data (cd:STR_Parse Msg "\n" T)
         d    (length data)
-        c    (if (numberp Lng)
-               (cond
+        c    (if (numberp Lng) 
+               (cond 
                  ((zerop Lng) T)
                  ((= 1 Lng) nil)
                  (T nil)
@@ -1459,26 +1492,26 @@
              )
         h    "width=12;horizontal_margin=none;vertical_margin=none;fixed_width=true;"
   )
-  (cond
-    ((not
-       (and
-         (setq f (open
+  (cond 
+    ((not 
+       (and 
+         (setq f (open 
                    (setq tmp (vl-FileName-MkTemp nil nil ".dcl"))
                    "w"
                  )
          )
-         (foreach %
-           (list
+         (foreach % 
+           (list 
              "StdYesNoDialog:dialog{"
-             (strcat "label=\""
+             (strcat "label=\"" 
                      (if Title (strcat Title "\";") "\"\";")
              )
              ":text{key=\"text\";"
-             (strcat
+             (strcat 
                "width="
-               (itoa
-                 (if
-                   (< (setq l (car (vl-sort (mapcar (quote strlen) data) (quote >))))
+               (itoa 
+                 (if 
+                   (< (setq l (car (vl-sort (mapcar (quote strlen) data) (quote >)))) 
                       36
                    )
                    37
@@ -1489,16 +1522,16 @@
                (if (>= d 15) "15" (itoa d))
              )
              ";}:spacer{height=0.2;}:row{alignment=centered;spacer_0;"
-             (cond
+             (cond 
                ((zerop Btns)
-                (strcat
+                (strcat 
                   ":retirement_button{label=\"OK\";key=\"accept\";is_default=true;"
                   h
                   "}"
                 )
                )
                ((= 1 Btns)
-                (strcat
+                (strcat 
                   ":row{width=25;fixed_width=true;"
                   ":retirement_button{label=\"OK\";key=\"accept\";is_default=true;"
                   h
@@ -1510,7 +1543,7 @@
                 )
                )
                ((= 2 Btns)
-                (strcat
+                (strcat 
                   ":retirement_button{"
                   (if c "label=\"&Anuluj\";" "label=\"&Cancel\";")
                   "key=\"cancel\";is_cancel=true;"
@@ -1519,7 +1552,7 @@
                 )
                )
                ((= 3 Btns)
-                (strcat
+                (strcat 
                   ":row{width=38;fixed_width=true;:button{"
                   (if c "label=\"&Tak\";" "label=\"&Yes\";")
                   "key=\"yes\";is_default=true;"
@@ -1536,7 +1569,7 @@
                 )
                )
                ((= 4 Btns)
-                (strcat
+                (strcat 
                   ":row{width=25;fixed_width=true;:button{"
                   (if c "label=\"&Tak\";" "label=\"&Yes\";")
                   "key=\"yes\";is_default=true;"
@@ -1549,7 +1582,7 @@
                 )
                )
                ((= 5 Btns)
-                (strcat
+                (strcat 
                   ":button{is_cancel=true;"
                   (if c "label=\"&Zamknij\";" "label=\"&Close\";")
                   "key=\"close\";width=12;"
@@ -1558,7 +1591,7 @@
                 )
                )
                (T
-                (strcat
+                (strcat 
                   ":retirement_button{label=\"OK\";key=\"accept\";is_default=true;"
                   h
                   "}"
@@ -1571,10 +1604,10 @@
          )
          (not (close f))
          (< 0 (setq dc (load_dialog tmp)))
-         (new_dialog "StdYesNoDialog"
+         (new_dialog "StdYesNoDialog" 
                      dc
                      ""
-                     (cond
+                     (cond 
                        (*cd-TempDlgPosition*)
                        ((quote (-1 -1)))
                      )
@@ -1583,11 +1616,11 @@
      )
     )
     (T
-     (set_tile "text"
-               (apply (quote strcat)
-                      (mapcar
-                        (function
-                          (lambda (%)
+     (set_tile "text" 
+               (apply (quote strcat) 
+                      (mapcar 
+                        (function 
+                          (lambda (%) 
                             (strcat % "\n")
                           )
                         )
@@ -1614,12 +1647,12 @@
 ;  Lst [LIST]             - lista do wypelnienia / list to fill                               ;
 ;  Pos [INT/REAL/STR/nil] - aktualna pozycja na liscie / current position on the list         ;
 ; =========================================================================================== ;
-(defun cd:DCL_SetList (Key Lst Pos)
+(defun cd:DCL_SetList (Key Lst Pos) 
   (start_list Key)
   (mapcar (quote add_list) Lst)
   (end_list)
-  (set_tile Key
-            (cond
+  (set_tile Key 
+            (cond 
               ((numberp Pos) (itoa (fix Pos)))
               ((= (type Pos) (quote STR)) Pos)
               (T (itoa 0))
@@ -1694,12 +1727,12 @@
 ;   "Poziom" "Wprowadz poziom: (-100 < X < 100)" 40 13 (list "&Ok" "&Anuluj") T nil           ;
 ; )                                                                                           ;
 ; =========================================================================================== ;
-(defun cd:DCL_StdEditBoxDialog (Data Title EditTitle Width BtnsWidth BtnsLabel DPos
+(defun cd:DCL_StdEditBoxDialog (Data Title EditTitle Width BtnsWidth BtnsLabel DPos 
                                 Limit / _CheckVal fd tmp dc defval res fl
-                               )
-  (defun _CheckVal (Code Bit Val / tmp _Logand _IsBlank _IsSpaces _Pattern _UserList
+                               ) 
+  (defun _CheckVal (Code Bit Val / tmp _Logand _IsBlank _IsSpaces _Pattern _UserList 
                     _Error _StrUnit _Nth _IsNumb res err
-                   )
+                   ) 
     (setq tmp Bit)
     (if (not fl) (setq Bit (apply (quote +) (mapcar (quote car) Bit))))
     (defun _Logand (b) (= b (logand Bit b)))
@@ -1709,15 +1742,15 @@
     (defun _UserList (s) (member (strcase Val) (mapcar (quote strcase) (_Nth 5))))
     (defun _Error (b) (if (not fl) (setq err (cdr (assoc b tmp)))))
     (defun _StrUnit (s) (distof s 3))
-    (defun _Nth (n / p)
-      (if (setq p (vl-catch-all-apply (quote nth) (list n Data)))
+    (defun _Nth (n / p) 
+      (if (setq p (vl-catch-all-apply (quote nth) (list n Data))) 
         p
         (vl-catch-all-error-p p)
       )
     )
-    (defun _IsNumb (s b / r)
-      (if (setq r (_StrUnit s))
-        (cond
+    (defun _IsNumb (s b / r) 
+      (if (setq r (_StrUnit s)) 
+        (cond 
           ((and (= 1 (logand 1 b)) (numberp r))) ; liczba / number
           ((and (= 2 (logand 2 b)) (zerop r))) ; zero   / zero
           ((and (= 4 (logand 4 b)) (minusp r))) ; ujemna / negative
@@ -1725,16 +1758,16 @@
         )
       )
     )
-    (cond
+    (cond 
       ((= Code 0) ; dowolny lancuch / any string
-       (cond
+       (cond 
          ((and (_Logand 1) (_IsBlank Val)) (_Error 1)) ; bez ""            / no ""
          ((and (_Logand 8) (_IsSpaces Val)) (_Error 8)) ; bez samych spacji / no spaces
          (T (setq res Val))
        )
       )
       ((= Code 1) ; lancuch zgodny z nazwa tablicy / string consistent with table name
-       (cond
+       (cond 
          ((and (_Logand 1) (_IsBlank Val)) (_Error 1)) ; bez ""                  / no ""
          ((and (_Logand 2) (not (snvalid Val))) (_Error 2)) ; bez zlej nazwy snvalid  / no bad name
          ((and (_Logand 4) (tblsearch (_Nth 3) Val)) (_Error 4)) ; bez istniejacych nazw   / no existing name
@@ -1745,7 +1778,7 @@
        )
       )
       ((member Code (list 2 3)) ; INT = 2, REAL = 3
-       (cond
+       (cond 
          ((and (_Logand 1) (_IsBlank Val)) (_Error 1)) ; bez ""            / no ""
          ((and (_Logand 2) (_IsNumb Val 2)) (_Error 2)) ; bez zera          / no zero
          ((and (_Logand 4) (_IsNumb Val 4)) (_Error 4)) ; bez ujemnych      / no negative
@@ -1754,8 +1787,8 @@
          ((and (_Logand 32) (> (_Nth 3) (_StrUnit Val))) (_Error 32)) ; liczba za mala    / number to small
          ((and (_Logand 64) (< (_Nth 4) (_StrUnit Val))) (_Error 64)) ; liczba za duza    / number to big
          (T
-          (setq res (if (_IsNumb Val 1)
-                      (if (= Code 2)
+          (setq res (if (_IsNumb Val 1) 
+                      (if (= Code 2) 
                         (itoa (fix (_StrUnit Val)))
                         (cd:CON_Real2Str (_StrUnit Val) (_Nth 5) (_Nth 6))
                       )
@@ -1767,28 +1800,28 @@
       )
       (T nil)
     )
-    (if (and defval res)
+    (if (and defval res) 
       (set_tile "edit" res)
       (set_tile "edit" Val)
     )
-    (if err
+    (if err 
       (set_tile "error" err)
       (set_tile "error" "")
     )
     res
   )
   (if (not DPos) (setq *cd-TempDlgPosition* (list -1 -1)))
-  (cond
-    ((not
-       (and
-         (setq fd (open
+  (cond 
+    ((not 
+       (and 
+         (setq fd (open 
                     (setq tmp (vl-FileName-MkTemp nil nil ".dcl"))
                     "w"
                   )
          )
-         (foreach %
-           (list
-             (strcat
+         (foreach % 
+           (list 
+             (strcat 
                "but : button { width = "
                (if BtnsWidth (itoa BtnsWidth) "13")
                "; fixed_width = true; }"
@@ -1816,7 +1849,7 @@
                (cadr BtnsLabel)
                "\"; is_cancel = true; }"
                "  } "
-               (if (setq fl (= (type (cadr Data)) (quote INT)))
+               (if (setq fl (= (type (cadr Data)) (quote INT))) 
                  ""
                  ": errtile { width = 20; }"
                )
@@ -1827,10 +1860,10 @@
          )
          (not (close fd))
          (< 0 (setq dc (load_dialog tmp)))
-         (new_dialog "StdEditBoxDialog"
+         (new_dialog "StdEditBoxDialog" 
                      dc
                      ""
-                     (cond
+                     (cond 
                        (*cd-TempDlgPosition*)
                        ((quote (-1 -1)))
                      )
@@ -1840,13 +1873,13 @@
     )
     (T
      (setq defval (substr (caddr Data) 1 Limit)
-           res    (if (not (= defval ""))
+           res    (if (not (= defval "")) 
                     (_CheckVal (car Data) (cadr Data) defval)
                   )
      )
      (mode_tile "edit" 2)
      (action_tile "edit" "(setq res (_CheckVal (car Data) (cadr Data) $value))")
-     (action_tile (car BtnsLabel)
+     (action_tile (car BtnsLabel) 
                   "(if res (setq *cd-TempDlgPosition* (done_dialog 1)))"
      )
      (action_tile (cadr BtnsLabel) "(setq res nil) (done_dialog 0)")
@@ -1885,31 +1918,31 @@
 ;   "List of Layouts" "Select layout:" 40 15 2 13 (list "&Ok" "&Cancel")                      ;
 ;   nil T T '(setvar "ctab" (nth (atoi res) lst)))                                            ;
 ; =========================================================================================== ;
-(defun cd:DCL_StdListDialog (Data Pos Title ListTitle Width Height Btns BtnsWidth
-                             BtnsLabel MSelect DPos DblClick Func / _Sub _Value2List
+(defun cd:DCL_StdListDialog (Data Pos Title ListTitle Width Height Btns BtnsWidth 
+                             BtnsLabel MSelect DPos DblClick Func / _Sub _Value2List 
                              _SetControls fd ok ca tmp dc res
-                            )
-  (defun _Sub (Val)
+                            ) 
+  (defun _Sub (Val) 
     (if (and Func Data) (eval Func))
     (_SetControls (setq res (_Value2List Val)))
   )
   (defun _Value2List (Val) (read (strcat "(" Val ")")))
-  (defun _SetControls (Idx)
-    (if (and Idx Data)
+  (defun _SetControls (Idx) 
+    (if (and Idx Data) 
       (mode_tile (car BtnsLabel) 0)
       (mode_tile (car BtnsLabel) 1)
     )
   )
   (if (not DPos) (setq *cd-TempDlgPosition* (list -1 -1)))
-  (cond
-    ((not
-       (and
-         (setq fd (open
+  (cond 
+    ((not 
+       (and 
+         (setq fd (open 
                     (setq tmp (vl-FileName-MkTemp nil nil ".dcl"))
                     "w"
                   )
          )
-         (setq ok (strcat
+         (setq ok (strcat 
                     ": but { label = \""
                     (car BtnsLabel)
                     "\";"
@@ -1917,7 +1950,7 @@
                     (car BtnsLabel)
                     "\"; is_default = true;}"
                   )
-               ca (strcat
+               ca (strcat 
                     ": but { label=\""
                     (cadr BtnsLabel)
                     "\";"
@@ -1926,9 +1959,9 @@
                     "\";is_cancel = true;}"
                   )
          )
-         (foreach %
-           (list
-             (strcat
+         (foreach % 
+           (list 
+             (strcat 
                "but : button { width = "
                (if BtnsWidth (itoa BtnsWidth) 13)
                "; fixed_width = true; }"
@@ -1947,7 +1980,7 @@
                (if MSelect "true;" "false;")
                "} : row { alignment = centered; fixed_width = true;"
              )
-             (cond
+             (cond 
                ((zerop Btns) ca)
                ((= 1 Btns) ok)
                (T (strcat ok ca))
@@ -1958,10 +1991,10 @@
          )
          (not (close fd))
          (< 0 (setq dc (load_dialog tmp)))
-         (new_dialog "StdListDialog"
+         (new_dialog "StdListDialog" 
                      dc
                      ""
-                     (cond
+                     (cond 
                        (*cd-TempDlgPosition*)
                        ((quote (-1 -1)))
                      )
@@ -1973,8 +2006,8 @@
      (start_list "list")
      (mapcar (quote add_list) Data)
      (end_list)
-     (if
-       (or
+     (if 
+       (or 
          (not Pos)
          (not (< -1 Pos (length Data)))
        )
@@ -1982,18 +2015,18 @@
      )
      (setq res (set_tile "list" (itoa Pos)))
      (_Sub res)
-     (action_tile "list"
-                  (vl-prin1-to-string
-                    (quote
-                      (progn
+     (action_tile "list" 
+                  (vl-prin1-to-string 
+                    (quote 
+                      (progn 
                         (setq res $value)
                         (_Sub res)
-                        (if
-                          (and
+                        (if 
+                          (and 
                             DblClick
                             (not (zerop Btns))
                           )
-                          (if (= $reason 4)
+                          (if (= $reason 4) 
                             (setq *cd-TempDlgPosition* (done_dialog 1))
                           )
                         )
@@ -2019,8 +2052,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_AddDict (namedobjdict) "NAZWA")                                                     ;
 ; =========================================================================================== ;
-(defun cd:DCT_AddDict (Root Name)
-  (dictadd (if (not Root) (namedobjdict) Root)
+(defun cd:DCT_AddDict (Root Name) 
+  (dictadd (if (not Root) (namedobjdict) Root) 
            Name
            (entmakex (append '((0 . "DICTIONARY") (100 . "AcDbDictionary"))))
   )
@@ -2034,8 +2067,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_AddXrecord (cd:DCT_GetDict (namedobjdict) "NAZWA") "NAZWA-SUB1" '((1 . "ABC")))     ;
 ; =========================================================================================== ;
-(defun cd:DCT_AddXrecord (Root XName XData)
-  (dictadd (if (not Root) (namedobjdict) Root)
+(defun cd:DCT_AddXrecord (Root XName XData) 
+  (dictadd (if (not Root) (namedobjdict) Root) 
            XName
            (entmakex (append '((0 . "XRECORD") (100 . "AcDbXrecord")) XData))
   )
@@ -2048,7 +2081,7 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_GetDict (namedobjdict) "NAZWA")                                                     ;
 ; =========================================================================================== ;
-(defun cd:DCT_GetDict (Root Name)
+(defun cd:DCT_GetDict (Root Name) 
   (cdr (assoc -1 (dictsearch (if (not Root) (namedobjdict) Root) Name)))
 )
 ; =========================================================================================== ;
@@ -2059,12 +2092,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_GetDictList (cd:DCT_GetDict (namedobjdict) "NAZWA") T)                              ;
 ; =========================================================================================== ;
-(defun cd:DCT_GetDictList (Root Code / dt tmp res)
-  (if Root
-    (if Code
-      (progn
+(defun cd:DCT_GetDictList (Root Code / dt tmp res) 
+  (if Root 
+    (if Code 
+      (progn 
         (setq dt (entget Root))
-        (while (setq dt (member (setq tmp (assoc 3 dt)) dt))
+        (while (setq dt (member (setq tmp (assoc 3 dt)) dt)) 
           (setq res (cons (cons (cdr tmp) (cdadr dt)) res)
                 dt  (cdr dt)
           )
@@ -2084,25 +2117,25 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_GetExtDict (car (entsel)) T)                                                        ;
 ; =========================================================================================== ;
-(defun cd:DCT_GetExtDict (Ename Flag / res he ta)
-  (if
-    (and
+(defun cd:DCT_GetExtDict (Ename Flag / res he ta) 
+  (if 
+    (and 
       (= (type Ename) (quote ENAME))
       (setq dt (entget Ename))
     )
-    (if (not (setq res (cdr (assoc 360 (member '(102 . "{ACAD_XDICTIONARY") dt)))))
-      (if Flag
-        (progn
-          (setq res (entmakex
+    (if (not (setq res (cdr (assoc 360 (member '(102 . "{ACAD_XDICTIONARY") dt))))) 
+      (if Flag 
+        (progn 
+          (setq res (entmakex 
                       (append '((0 . "DICTIONARY") (100 . "AcDbDictionary")))
                     )
                 he  (reverse (member (assoc 5 dt) (reverse dt)))
                 ta  (cdr (member (assoc 5 dt) dt))
           )
-          (entmod
-            (append
+          (entmod 
+            (append 
               he
-              (list
+              (list 
                 '(102 . "{ACAD_XDICTIONARY")
                 (cons 360 res)
                 '(102 . "}")
@@ -2124,12 +2157,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_GetExtDictVLA (car (entsel)) T)                                                     ;
 ; =========================================================================================== ;
-(defun cd:DCT_GetExtDictVLA (Obj Flag / res)
-  (if (= (type Obj) (quote ENAME))
+(defun cd:DCT_GetExtDictVLA (Obj Flag / res) 
+  (if (= (type Obj) (quote ENAME)) 
     (setq Obj (vlax-ename->vla-object Obj))
   )
-  (if
-    (setq res (if (= :vlax-true (vla-get-HasExtensionDictionary Obj))
+  (if 
+    (setq res (if (= :vlax-true (vla-get-HasExtensionDictionary Obj)) 
                 (vla-GetExtensionDictionary Obj)
                 (if Flag (vla-GetExtensionDictionary Obj))
               )
@@ -2143,7 +2176,7 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_GetXrecord (cdar (cd:DCT_GetDictList (cd:DCT_GetDict (namedobjdict) "NAZWA") T)))   ;
 ; =========================================================================================== ;
-(defun cd:DCT_GetXRecord (Ename / dt)
+(defun cd:DCT_GetXRecord (Ename / dt) 
   (cdr (member (assoc 280 (setq dt (entget Ename))) dt))
 )
 ; =========================================================================================== ;
@@ -2154,7 +2187,7 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DCT_RemoveDict (namedobjdict) "NAZWA")                                                  ;
 ; =========================================================================================== ;
-(defun cd:DCT_RemoveDict (Root Name)
+(defun cd:DCT_RemoveDict (Root Name) 
   (dictremove (if (not Root) (namedobjdict) Root) Name)
 )
 ; =========================================================================================== ;
@@ -2166,14 +2199,14 @@
 ;   (cdar (cd:DCT_GetDictList (cd:DCT_GetDict (namedobjdict) "NAZWA") T))                     ;
 ;   (list (cons 1 "NEW") (cons 341 (car (entsel)))))                                          ;
 ; =========================================================================================== ;
-(defun cd:DCT_ReplaceXrecord (Ename Data / en root name)
+(defun cd:DCT_ReplaceXrecord (Ename Data / en root name) 
   (setq root (cdr (assoc 330 (entget Ename)))
-        name (cdr
-               (assoc
+        name (cdr 
+               (assoc 
                  Ename
-                 (mapcar
-                   (function
-                     (lambda (%)
+                 (mapcar 
+                   (function 
+                     (lambda (%) 
                        (cons (cdr %) (car %))
                      )
                    )
@@ -2182,8 +2215,8 @@
                )
              )
   )
-  (if (cd:DCT_RemoveDict root name)
-    (progn
+  (if (cd:DCT_RemoveDict root name) 
+    (progn 
       (setq en (cd:DCT_AddXrecord root name Data))
       (cd:DCT_GetXRecord en)
     )
@@ -2198,30 +2231,30 @@
 ;   (cdar (cd:DCT_GetDictList (cd:DCT_GetDict (namedobjdict) "NAZWA") T))                     ;
 ;   (list (cons 1 "NEW123") (cons 341 (car (entsel)))))                                       ;
 ; =========================================================================================== ;
-(defun cd:DCT_SetXrecordVLA (Ename Data / n)
+(defun cd:DCT_SetXrecordVLA (Ename Data / n) 
   (setq n (1- (length Data)))
-  (vla-SetXRecordData
+  (vla-SetXRecordData 
     (vlax-ename->vla-object Ename)
-    (vlax-make-variant
-      (vlax-safearray-fill
-        (vlax-make-safearray
+    (vlax-make-variant 
+      (vlax-safearray-fill 
+        (vlax-make-safearray 
           vlax-vbInteger
           (cons 0 n)
         )
         (mapcar (quote car) Data)
       )
     )
-    (vlax-make-variant
-      (vlax-safearray-fill
-        (vlax-make-safearray
+    (vlax-make-variant 
+      (vlax-safearray-fill 
+        (vlax-make-safearray 
           vlax-vbVariant
           (cons 0 n)
         )
-        (mapcar
-          (function
-            (lambda (% / %1)
+        (mapcar 
+          (function 
+            (lambda (% / %1) 
               (setq %1 (type %))
-              (cond
+              (cond 
                 ((= %1 (quote ENAME)) (vlax-ename->vla-object %))
                 ((= %1 (quote LIST)) (vlax-3d-point %))
                 (T %)
@@ -2245,9 +2278,9 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DWG_AddCustomProp (cd:ACX_ADoc) "One" "1" nil)                                          ;
 ; =========================================================================================== ;
-(defun cd:DWG_AddCustomProp (Doc Name Value Mode / si)
+(defun cd:DWG_AddCustomProp (Doc Name Value Mode / si) 
   (setq si (vla-get-SummaryInfo Doc))
-  (if (member Name (mapcar (quote car) (cd:DWG_GetCustomProp Doc)))
+  (if (member Name (mapcar (quote car) (cd:DWG_GetCustomProp Doc))) 
     (if Mode (vla-SetCustomByKey si Name Value))
     (vla-AddCustomInfo si Name Value)
   )
@@ -2258,11 +2291,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DWG_GetCustomProp (cd:ACX_ADoc))                                                        ;
 ; =========================================================================================== ;
-(defun cd:DWG_GetCustomProp (Doc / si n k v lst)
+(defun cd:DWG_GetCustomProp (Doc / si n k v lst) 
   (setq si (vla-get-SummaryInfo Doc)
         n  (vla-NumCustomInfo si)
   )
-  (while (> n 0)
+  (while (> n 0) 
     (vla-GetCustomByIndex si (- n 1) 'k 'v)
     (setq lst (cons (cons k v) lst)
           n   (1- n)
@@ -2273,10 +2306,10 @@
 ; =========================================================================================== ;
 ; Lista otwartych dokumentow / Open documents list                                            ;
 ; =========================================================================================== ;
-(defun cd:DWG_GetOpenDocs (/ res)
-  (vlax-for % (vla-get-documents (vlax-get-acad-object))
-    (setq res (cons
-                (cons
+(defun cd:DWG_GetOpenDocs (/ res) 
+  (vlax-for % (vla-get-documents (vlax-get-acad-object)) 
+    (setq res (cons 
+                (cons 
                   (vla-get-name %)
                   %
                 )
@@ -2291,20 +2324,20 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DWG_GetSummaryInfo (cd:ACX_ADoc))                                                       ;
 ; =========================================================================================== ;
-(defun cd:DWG_GetSummaryInfo (Doc)
-  (mapcar
-    (function
-      (lambda (%)
-        (cons
+(defun cd:DWG_GetSummaryInfo (Doc) 
+  (mapcar 
+    (function 
+      (lambda (%) 
+        (cons 
           %
-          (vlax-get-property
+          (vlax-get-property 
             (vla-get-SummaryInfo Doc)
             %
           )
         )
       )
     )
-    (list "Author" "Comments" "HyperLinkBase" "Keywords" "LastSavedBy"
+    (list "Author" "Comments" "HyperLinkBase" "Keywords" "LastSavedBy" 
           "RevisionNumber" "Subject" "Title"
     )
   )
@@ -2315,10 +2348,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DWG_Layout2VLA (getvar "CTAB"))                                                         ;
 ; =========================================================================================== ;
-(defun cd:DWG_Layout2VLA (Layout / res)
-  (and
+(defun cd:DWG_Layout2VLA (Layout / res) 
+  (and 
     (member Layout (layoutlist))
-    (setq res (vla-item
+    (setq res (vla-item 
                 (cd:ACX_Layouts)
                 Layout
               )
@@ -2329,10 +2362,10 @@
 ; =========================================================================================== ;
 ; Lista arkuszy rysunku / Layouts drawing list                                                ;
 ; =========================================================================================== ;
-(defun cd:DWG_LayoutsList (/ res)
-  (vlax-for % (cd:ACX_Layouts)
-    (setq res (cons
-                (list
+(defun cd:DWG_LayoutsList (/ res) 
+  (vlax-for % (cd:ACX_Layouts) 
+    (setq res (cons 
+                (list 
                   (vla-get-name %)
                   (vla-get-TabOrder %)
                   %
@@ -2350,16 +2383,16 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DWG_RemoveCustomProp (cd:ACX_ADoc) (list "One" "Two"))                                  ;
 ; =========================================================================================== ;
-(defun cd:DWG_RemoveCustomProp (Doc Mode / si)
+(defun cd:DWG_RemoveCustomProp (Doc Mode / si) 
   (setq si (vla-get-SummaryInfo Doc))
-  (if (listp Mode)
-    (foreach % Mode
-      (vl-catch-all-apply
+  (if (listp Mode) 
+    (foreach % Mode 
+      (vl-catch-all-apply 
         (quote vla-RemoveCustomByKey)
         (list si %)
       )
     )
-    (foreach % (mapcar (quote car) (cd:DWG_GetCustomProp Doc))
+    (foreach % (mapcar (quote car) (cd:DWG_GetCustomProp Doc)) 
       (vla-RemoveCustomByKey si %)
     )
   )
@@ -2372,23 +2405,23 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DWG_SetSummaryInfo (cd:ACX_ADoc) '(("Author" . "Me")("Title" . "123-ABC-55")))          ;
 ; =========================================================================================== ;
-(defun cd:DWG_SetSummaryInfo (Doc Data / si)
+(defun cd:DWG_SetSummaryInfo (Doc Data / si) 
   (setq si (vla-get-SummaryInfo Doc))
-  (if (not Data)
-    (mapcar
-      (function
-        (lambda (%)
+  (if (not Data) 
+    (mapcar 
+      (function 
+        (lambda (%) 
           (vlax-put-property si % "")
         )
       )
-      (list "Author" "Comments" "HyperLinkBase" "Keywords" "LastSavedBy"
+      (list "Author" "Comments" "HyperLinkBase" "Keywords" "LastSavedBy" 
             "RevisionNumber" "Subject" "Title"
       )
     )
-    (mapcar
-      (function
-        (lambda (%)
-          (if (vlax-property-available-p si (car %))
+    (mapcar 
+      (function 
+        (lambda (%) 
+          (if (vlax-property-available-p si (car %)) 
             (vlax-put-property si (car %) (cdr %))
           )
         )
@@ -2406,8 +2439,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DXF_Massoc 10 (entget (car (entsel))))                                                  ;
 ; =========================================================================================== ;
-(defun cd:DXF_Massoc (Key Data / res tmp)
-  (while (setq Data (member (setq tmp (assoc Key Data)) Data))
+(defun cd:DXF_Massoc (Key Data / res tmp) 
+  (while (setq Data (member (setq tmp (assoc Key Data)) Data)) 
     (setq res  (cons (cdr tmp) res)
           Data (cdr Data)
     )
@@ -2421,10 +2454,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:DXF_RemoveDXF (entget (entlast)) (list -1 3 5 102 330 360 440))                         ;
 ; =========================================================================================== ;
-(defun cd:DXF_RemoveDXF (Data Lst)
-  (vl-remove-if
-    (function
-      (lambda (%)
+(defun cd:DXF_RemoveDXF (Data Lst) 
+  (vl-remove-if 
+    (function 
+      (lambda (%) 
         (member (car %) Lst)
       )
     )
@@ -2443,9 +2476,9 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_CheckTableObj "LAYER" "0"), (cd:ENT_CheckTableObj "BLOCK" "nazwa")                  ;
 ; =========================================================================================== ;
-(defun cd:ENT_CheckTableObj (Table Name)
-  (if (not (tblobjname Table Name))
-    (if (snvalid Name 0)
+(defun cd:ENT_CheckTableObj (Table Name) 
+  (if (not (tblobjname Table Name)) 
+    (if (snvalid Name 0) 
       0
       -1
     )
@@ -2465,18 +2498,18 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeArc "Model" '(1 5 0) 5 0 pi T)                                                  ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeArc (Layout Pc Radius As Ae ActUcs / zdir xang)
+(defun cd:ENT_MakeArc (Layout Pc Radius As Ae ActUcs / zdir xang) 
   (setq zdir (trans (list 0 0 1) 1 0 T)
         xang (angle (list 0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (entmakex
-    (list
+  (entmakex 
+    (list 
       (cons 0 "ARC")
       (cons 10 (trans Pc 1 (if ActUcs zdir 0)))
       (cons 40 Radius)
       (cons 50 (+ As xang))
       (cons 51 (+ Ae xang))
-      (if ActUcs
+      (if ActUcs 
         (cons 210 zdir)
         (cons 210 (list 0 0 1))
       )
@@ -2487,9 +2520,9 @@
 ; =========================================================================================== ;
 ; Tworzy koniec definicji bloku / Creates a block definition end                              ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeBlockEnd ()
-  (entmake
-    (list
+(defun cd:ENT_MakeBlockEnd () 
+  (entmake 
+    (list 
       (cons 0 "ENDBLK")
       (cons 8 "0")
     )
@@ -2506,15 +2539,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeBlockHead "NOWY" (list 0 0 0) 0), (cd:ENT_MakeBlockHead "*U" (list 0 0 0) 1)    ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeBlockHead (Name Pb Flag)
-  (entmakex
-    (list
+(defun cd:ENT_MakeBlockHead (Name Pb Flag) 
+  (entmakex 
+    (list 
       (cons 0 "BLOCK")
       (cons 2 Name)
       (cons 8 "0")
       (cons 10 Pb)
-      (cons 70
-            (if (member Flag (list 0 1 2 3))
+      (cons 70 
+            (if (member Flag (list 0 1 2 3)) 
               Flag
               0
             )
@@ -2533,14 +2566,14 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeCircle "Model" '(1 5 0) 5 T)                                                    ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeCircle (Layout Pc Rad ActUcs / zdir)
+(defun cd:ENT_MakeCircle (Layout Pc Rad ActUcs / zdir) 
   (setq zdir (trans (list 0 0 1) 1 0 T))
-  (entmakex
-    (list
+  (entmakex 
+    (list 
       (cons 0 "CIRCLE")
       (cons 10 (trans Pc 1 (if ActUcs zdir 0)))
       (cons 40 Rad)
-      (if ActUcs
+      (if ActUcs 
         (cons 210 zdir)
         (cons 210 (list 0 0 1))
       )
@@ -2561,22 +2594,22 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeEllipse "Model" '(1 5 0) 10.0 5.0 (* pi 0.25) T)                                ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeEllipse (Layout Pc Width Height RotAng ActUcs / zdir xang)
+(defun cd:ENT_MakeEllipse (Layout Pc Width Height RotAng ActUcs / zdir xang) 
   (setq zdir (trans (list 0 0 1) 1 0 T)
         xang (angle (list 0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (entmakex
-    (list
+  (entmakex 
+    (list 
       (cons 0 "ELLIPSE")
       (cons 100 "AcDbEntity")
       (cons 100 "AcDbEllipse")
       (cons 10 (trans Pc 1 0))
-      (if ActUcs
+      (if ActUcs 
         (cons 11 (trans (polar (trans (list 0 0 0) 0 1) RotAng (/ Width 2.0)) 1 0))
         (cons 11 (polar (list 0 0 0) (+ RotAng xang) (/ Width 2.0)))
       )
       (cons 40 (/ (float Height) (float Width)))
-      (if ActUcs
+      (if ActUcs 
         (cons 210 zdir)
         (cons 210 (list 0 0 1))
       )
@@ -2590,11 +2623,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeLayer "ABC")                                                                    ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeLayer (Name / en)
-  (if (setq en (tblobjname "LAYER" Name))
+(defun cd:ENT_MakeLayer (Name / en) 
+  (if (setq en (tblobjname "LAYER" Name)) 
     en
-    (entmakex
-      (list
+    (entmakex 
+      (list 
         (cons 0 "LAYER")
         (cons 100 "AcDbSymbolTableRecord")
         (cons 100 "AcDbLayerTableRecord")
@@ -2615,14 +2648,14 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeLine "Model" '(20 10 0) '(100 50 0) T)                                          ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeLine (Layout Ps Pe ActUcs / zdir)
+(defun cd:ENT_MakeLine (Layout Ps Pe ActUcs / zdir) 
   (setq zdir (trans (list 0 0 1) 1 0 T))
-  (entmakex
-    (list
+  (entmakex 
+    (list 
       (cons 0 "LINE")
       (cons 10 (trans Ps 1 0))
       (cons 11 (trans Pe 1 0))
-      (if ActUcs
+      (if ActUcs 
         (cons 210 zdir)
         (cons 210 (list 0 0 1))
       )
@@ -2639,11 +2672,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeLWPolyline "Model" (list '(5 5) '(15 5) '(15 10) '(10 10)) nil)                 ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeLWPolyline (Layout Pts Closed / zdir)
+(defun cd:ENT_MakeLWPolyline (Layout Pts Closed / zdir) 
   (setq zdir (trans '(0 0 1) 1 0 T))
-  (entmakex
-    (append
-      (list
+  (entmakex 
+    (append 
+      (list 
         (cons 0 "LWPOLYLINE")
         (cons 100 "AcDbEntity")
         (cons 100 "AcDbPolyline")
@@ -2653,9 +2686,9 @@
         (cons 210 zdir)
         (cons 410 Layout)
       )
-      (mapcar
-        (function
-          (lambda (%)
+      (mapcar 
+        (function 
+          (lambda (%) 
             (cons 10 (trans % 1 zdir))
           )
         )
@@ -2674,10 +2707,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeTable (getpoint) 5 5 10 30)                                                     ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeTable (Pb Rows Cols RowH ColH / r c)
-  (entmakex
-    (append
-      (list
+(defun cd:ENT_MakeTable (Pb Rows Cols RowH ColH / r c) 
+  (entmakex 
+    (append 
+      (list 
         (cons 0 "ACAD_TABLE")
         (cons 100 "AcDbEntity")
         (cons 100 "AcDbBlockReference")
@@ -2701,12 +2734,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeText "Model" "NEW_TEXT" '(20 10 0) 1.5 (/ pi 4))                                ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeText (Layout Str Pb Height Rot / zdir xang)
+(defun cd:ENT_MakeText (Layout Str Pb Height Rot / zdir xang) 
   (setq zdir (trans '(0 0 1) 1 0 T)
         xang (angle '(0 0 0) (trans (getvar "UCSXDIR") 0 zdir))
   )
-  (entmakex
-    (list
+  (entmakex 
+    (list 
       (cons 0 "TEXT")
       (cons 1 Str)
       (cons 10 (trans Pb 1 zdir))
@@ -2723,11 +2756,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeTextStyle "ABC")                                                                ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeTextStyle (Name / en)
-  (if (setq en (tblobjname "STYLE" Name))
+(defun cd:ENT_MakeTextStyle (Name / en) 
+  (if (setq en (tblobjname "STYLE" Name)) 
     en
-    (entmakex
-      (list
+    (entmakex 
+      (list 
         (cons 0 "STYLE")
         (cons 100 "AcDbSymbolTableRecord")
         (cons 100 "AcDbTextStyleTableRecord")
@@ -2745,15 +2778,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_MakeXline "Model" (getpoint) (/ pi 4))                                              ;
 ; =========================================================================================== ;
-(defun cd:ENT_MakeXline (Layout Ps Pe)
-  (entmakex
-    (list
+(defun cd:ENT_MakeXline (Layout Ps Pe) 
+  (entmakex 
+    (list 
       (cons 0 "XLINE")
       (cons 100 "AcDbEntity")
       (cons 100 "AcDbXline")
       (cons 10 (trans Ps 1 0))
-      (cons 11
-            (cond
+      (cons 11 
+            (cond 
               ((numberp Pe)
                (trans (polar (trans '(0 0 0) 0 1) Pe 1) 1 0)
               )
@@ -2777,15 +2810,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_SetBasicDXF (entlast) "NOWA" 21 "CONTINUOUS" 1.5 13)                                ;
 ; =========================================================================================== ;
-(defun cd:ENT_SetBasicDXF (Ename Layer Color LType LScale LWeight / dt)
+(defun cd:ENT_SetBasicDXF (Ename Layer Color LType LScale LWeight / dt) 
   (setq dt (entget Ename))
-  (mapcar
-    (function
-      (lambda (%1 %2)
-        (setq dt (if %2
-                   (if (not (assoc %1 dt))
+  (mapcar 
+    (function 
+      (lambda (%1 %2) 
+        (setq dt (if %2 
+                   (if (not (assoc %1 dt)) 
                      (append dt (list (cons %1 %2)))
-                     (subst
+                     (subst 
                        (cons %1 %2)
                        (assoc %1 dt)
                        dt
@@ -2809,10 +2842,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ENT_SetDXF (entlast) 70 129)                                                            ;
 ; =========================================================================================== ;
-(defun cd:ENT_SetDXF (Ename Code Val / dt new)
-  (setq new (if (not (assoc Code (setq dt (entget Ename))))
+(defun cd:ENT_SetDXF (Ename Code Val / dt new) 
+  (setq new (if (not (assoc Code (setq dt (entget Ename)))) 
               (append dt (list (cons Code Val)))
-              (subst
+              (subst 
                 (cons Code Val)
                 (assoc Code dt)
                 dt
@@ -2829,10 +2862,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_InsertItem 3 (list 0 1 2 4 5) 3)                                                    ;
 ; =========================================================================================== ;
-(defun cd:LST_InsertItem (Pos Lst New / res)
-  (if (< -1 Pos (1+ (length Lst)))
-    (progn
-      (repeat Pos
+(defun cd:LST_InsertItem (Pos Lst New / res) 
+  (if (< -1 Pos (1+ (length Lst))) 
+    (progn 
+      (repeat Pos 
         (setq res (cons (car Lst) res)
               Lst (cdr Lst)
         )
@@ -2849,10 +2882,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_ItemPosition 1 (list 0 "a" 1 "b" 3 1))                                              ;
 ; =========================================================================================== ;
-(defun cd:LST_ItemPosition (Item Lst / n p res)
+(defun cd:LST_ItemPosition (Item Lst / n p res) 
   (setq n -1)
-  (while
-    (and
+  (while 
+    (and 
       (setq p (vl-position Item Lst))
       (setq n   (+ (1+ n) p)
             res (cons n res)
@@ -2869,20 +2902,20 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_MoveItemDown 3 (list 0 1 2 3 4 5))                                                  ;
 ; =========================================================================================== ;
-(defun cd:LST_MoveItemDown (Pos Lst / n)
+(defun cd:LST_MoveItemDown (Pos Lst / n) 
   (setq n -1)
-  (cond
-    ((or
+  (cond 
+    ((or 
        (< Pos 0)
        (>= Pos (1- (length Lst)))
      )
      Lst
     )
-    ((mapcar
-       (function
-         (lambda (%)
+    ((mapcar 
+       (function 
+         (lambda (%) 
            (setq n (1+ n))
-           (cond
+           (cond 
              ((= n Pos)
               (nth (1+ Pos) Lst)
              )
@@ -2905,15 +2938,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_MoveItemToBottom 3 (list 0 1 2 3 4 5))                                              ;
 ; =========================================================================================== ;
-(defun cd:LST_MoveItemToBottom (Pos Lst)
-  (cond
-    ((or
+(defun cd:LST_MoveItemToBottom (Pos Lst) 
+  (cond 
+    ((or 
        (< Pos 0)
        (>= Pos (1- (length Lst)))
      )
      Lst
     )
-    ((append
+    ((append 
        (cd:LST_RemoveItem Pos Lst)
        (list (nth Pos Lst))
      )
@@ -2927,15 +2960,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_MoveItemToTop 3 (list 0 1 2 3 4 5))                                                 ;
 ; =========================================================================================== ;
-(defun cd:LST_MoveItemToTop (Pos Lst)
-  (cond
-    ((or
+(defun cd:LST_MoveItemToTop (Pos Lst) 
+  (cond 
+    ((or 
        (<= Pos 0)
        (>= Pos (length Lst))
      )
      Lst
     )
-    ((append
+    ((append 
        (list (nth Pos Lst))
        (cd:LST_RemoveItem Pos Lst)
      )
@@ -2949,20 +2982,20 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_MoveItemUp 3 (list 0 1 2 3 4 5))                                                    ;
 ; =========================================================================================== ;
-(defun cd:LST_MoveItemUp (Pos Lst / n)
+(defun cd:LST_MoveItemUp (Pos Lst / n) 
   (setq n -1)
-  (cond
-    ((or
+  (cond 
+    ((or 
        (zerop Pos)
        (>= Pos (length Lst))
      )
      Lst
     )
-    ((mapcar
-       (function
-         (lambda (%)
+    ((mapcar 
+       (function 
+         (lambda (%) 
            (setq n (1+ n))
-           (cond
+           (cond 
              ((= n (1- Pos))
               (nth Pos Lst)
              )
@@ -2985,10 +3018,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_RemoveItem 3 (list 0 1 2 3 4 5))                                                    ;
 ; =========================================================================================== ;
-(defun cd:LST_RemoveItem (Pos Lst)
-  (vl-remove-if
-    (function
-      (lambda (%)
+(defun cd:LST_RemoveItem (Pos Lst) 
+  (vl-remove-if 
+    (function 
+      (lambda (%) 
         (= -1 (setq Pos (1- Pos)))
       )
     )
@@ -3003,11 +3036,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_ReplaceItem 3 (list 0 1 2 3 4 5) "c")                                               ;
 ; =========================================================================================== ;
-(defun cd:LST_ReplaceItem (Pos Lst New)
-  (mapcar
-    (function
-      (lambda (%)
-        (cond
+(defun cd:LST_ReplaceItem (Pos Lst New) 
+  (mapcar 
+    (function 
+      (lambda (%) 
+        (cond 
           ((= -1 (setq Pos (1- Pos)))
            New
           )
@@ -3026,10 +3059,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:LST_ReverseItems 0 5 (list 0 1 2 3 4 5))                                                ;
 ; =========================================================================================== ;
-(defun cd:LST_ReverseItems (Pos1 Pos2 Lst / n)
+(defun cd:LST_ReverseItems (Pos1 Pos2 Lst / n) 
   (setq n -1)
-  (cond
-    ((or
+  (cond 
+    ((or 
        (< Pos1 0)
        (< Pos2 0)
        (>= Pos1 (length Lst))
@@ -3037,11 +3070,11 @@
      )
      Lst
     )
-    ((mapcar
-       (function
-         (lambda (%)
+    ((mapcar 
+       (function 
+         (lambda (%) 
            (setq n (1+ n))
-           (cond
+           (cond 
              ((= n Pos1)
               (nth Pos2 Lst)
              )
@@ -3065,20 +3098,20 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SSX_Convert (ssget) 1)                                                                  ;
 ; =========================================================================================== ;
-(defun cd:SSX_Convert (Ss Mode / n res)
-  (if
-    (and
+(defun cd:SSX_Convert (Ss Mode / n res) 
+  (if 
+    (and 
       (member Mode (list 0 1 2))
-      (not
-        (minusp
+      (not 
+        (minusp 
           (setq n (if Ss (1- (sslength Ss)) -1))
         )
       )
     )
-    (progn
-      (while (>= n 0)
-        (setq res (cons
-                    (if (zerop Mode)
+    (progn 
+      (while (>= n 0) 
+        (setq res (cons 
+                    (if (zerop Mode) 
                       (ssname Ss n)
                       (vlax-ename->vla-object (ssname Ss n))
                     )
@@ -3087,9 +3120,9 @@
               n   (1- n)
         )
       )
-      (if (= Mode 2)
-        (vlax-safearray-fill
-          (vlax-make-safearray 9
+      (if (= Mode 2) 
+        (vlax-safearray-fill 
+          (vlax-make-safearray 9 
                                (cons 0 (1- (length res)))
           )
           res
@@ -3108,18 +3141,18 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SSX_DynBlockFilter nil "Blok")                                                          ;
 ; =========================================================================================== ;
-(defun cd:SSX_DynBlockFilter (Mode Name / res bl)
-  (setq res (list '(0 . "INSERT")
-                  (cons 2
-                        (strcat "`"
-                                (cd:STR_ReParse
+(defun cd:SSX_DynBlockFilter (Mode Name / res bl) 
+  (setq res (list '(0 . "INSERT") 
+                  (cons 2 
+                        (strcat "`" 
+                                (cd:STR_ReParse 
                                   (mapcar (quote chr) (vl-string->list Name))
                                   "`"
                                 )
-                                (if (setq bl (cdr (cd:BLK_GetDynBlockNames Name)))
-                                  (strcat ","
-                                          (cd:STR_ReParse
-                                            (mapcar
+                                (if (setq bl (cdr (cd:BLK_GetDynBlockNames Name))) 
+                                  (strcat "," 
+                                          (cd:STR_ReParse 
+                                            (mapcar 
                                               (function (lambda (%) (strcat "`" %)))
                                               bl
                                             )
@@ -3141,11 +3174,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:STR_CountChar  "\"123\" \"416\" \"719\" \"A1c\"" "\"")                                  ;
 ; =========================================================================================== ;
-(defun cd:STR_CountChar (Str Char)
-  (-
+(defun cd:STR_CountChar (Str Char) 
+  (- 
     (strlen Str)
-    (length
-      (vl-remove
+    (length 
+      (vl-remove 
         (ascii Char)
         (vl-string->list Str)
       )
@@ -3163,12 +3196,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:STR_FillChar "12" "0" 5 nil)                                                            ;
 ; =========================================================================================== ;
-(defun cd:STR_FillChar (Str Char Pos Dir / res)
+(defun cd:STR_FillChar (Str Char Pos Dir / res) 
   (setq res "")
-  (repeat (- Pos (strlen Str))
+  (repeat (- Pos (strlen Str)) 
     (setq res (strcat res Char))
   )
-  (if Dir
+  (if Dir 
     (strcat str res)
     (strcat res str)
   )
@@ -3183,10 +3216,10 @@
 ; (cd:STR_Parse ";;1;2;3;;;9;" ";" nil) --> ("" "" "1" "2" "3" "" "" "9" "")                  ;
 ; (cd:STR_Parse ";;1;2;3;;;9;" ";" T)   --> ("1" "2" "3" "9")                                 ;
 ; =========================================================================================== ;
-(defun cd:STR_Parse (Str Sep Rbl / el res)
+(defun cd:STR_Parse (Str Sep Rbl / el res) 
   (setq el "")
-  (foreach % (vl-string->list Str)
-    (if (= Sep (chr %))
+  (foreach % (vl-string->list Str) 
+    (if (= Sep (chr %)) 
       (setq res (cons el res)
             el  ""
       )
@@ -3194,7 +3227,7 @@
     )
   )
   (setq res (cons el res))
-  (reverse
+  (reverse 
     (if Rbl (vl-remove "" res) res)
   )
 )
@@ -3206,9 +3239,9 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:STR_ReParse '("OLE2FRAME" "IMAGE" "HATCH") ",")                                         ;
 ; =========================================================================================== ;
-(defun cd:STR_ReParse (Lst Sep / res)
+(defun cd:STR_ReParse (Lst Sep / res) 
   (setq res (car Lst))
-  (foreach % (cdr Lst)
+  (foreach % (cdr Lst) 
     (setq res (strcat res Sep %))
   )
   res
@@ -3224,14 +3257,14 @@
 ; (cd:STR_TableNameAuto "BLOCK" "Front_" "_Tyl" "." 3)                                        ;
 ; (cd:STR_TableNameAuto "LAYER" "Pre_" nil "0" 5)                                             ;
 ; =========================================================================================== ;
-(defun cd:STR_TableNameAuto (Tbl Pref Suff Char Len / res n)
-  (foreach % (list "Pref" "Suff" "Char")
+(defun cd:STR_TableNameAuto (Tbl Pref Suff Char Len / res n) 
+  (foreach % (list "Pref" "Suff" "Char") 
     (set (read %) (if (eval (read %)) (eval (read %)) ""))
   )
   (setq res (strcat Pref (cd:STR_FillChar "1" Char Len nil) Suff)
         n   2
   )
-  (while (tblsearch Tbl res)
+  (while (tblsearch Tbl res) 
     (setq res (strcat Pref (cd:STR_FillChar (itoa n) Char Len nil) Suff)
           n   (1+ n)
     )
@@ -3241,12 +3274,12 @@
 ; =========================================================================================== ;
 ; AcadInfo np. ("AutoCAD" 18.0 64 "PL")                                                       ;
 ; =========================================================================================== ;
-(defun cd:SYS_AcadInfo (/ s v)
-  (list
+(defun cd:SYS_AcadInfo (/ s v) 
+  (list 
     (getvar "PRODUCT")
     (atof (getvar "ACADVER"))
     (if (wcmatch (strcase (getenv "PROCESSOR_ARCHITECTURE")) "*64*") 64 32)
-    (if (setq s (vl-string-search "(" (setq v (ver))))
+    (if (setq s (vl-string-search "(" (setq v (ver)))) 
       (strcase (substr v (+ 2 s) 2))
       "??"
     )
@@ -3258,11 +3291,11 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_CheckError (list cd:CAL_BitList "199"))                                             ;
 ; =========================================================================================== ;
-(defun cd:SYS_CheckError (Lst / res)
-  (if
-    (/=
-      (type
-        (setq res (vl-catch-all-apply
+(defun cd:SYS_CheckError (Lst / res) 
+  (if 
+    (/= 
+      (type 
+        (setq res (vl-catch-all-apply 
                     (quote (car Lst))
                     (cdr Lst)
                   )
@@ -3289,8 +3322,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_CollList "BLOCK" (+ 1 2 4))                                                         ;
 ; =========================================================================================== ;
-(defun cd:SYS_CollList (Coll Bit / lst con res nam)
-  (setq lst (list
+(defun cd:SYS_CollList (Coll Bit / lst con res nam) 
+  (setq lst (list 
               '("APPID" . "RegisteredApplications")
               '("BLOCK" . "Blocks")
               '("DIMSTYLE" . "DimStyles")
@@ -3306,48 +3339,48 @@
               '("VPORT" . "ViewPorts")
             )
   )
-  (if
-    (member
+  (if 
+    (member 
       (setq con (strcase Coll))
       (mapcar (quote car) lst)
     )
-    (vlax-for % (vlax-get (cd:ACX_ADoc) (cdr (assoc con lst)))
-      (progn
+    (vlax-for % (vlax-get (cd:ACX_ADoc) (cdr (assoc con lst))) 
+      (progn 
         (setq nam (vla-get-name %))
-        (cond
-          ((and
+        (cond 
+          ((and 
              (= 1 (logand Bit 1))
-             (or
+             (or 
                (= "" nam)
-               (and
+               (and 
                  (= con "BLOCK")
                  (eq (vla-get-IsLayout %) :vlax-true)
                )
              )
            )
           )
-          ((and
+          ((and 
              (= 2 (logand Bit 2))
              (wcmatch nam "[*]@#*")
            )
           )
-          ((and
+          ((and 
              (= 4 (logand Bit 4))
              (wcmatch nam "*|*")
            )
           )
-          ((and
+          ((and 
              (= 8 (logand Bit 8))
              (= con "BLOCK")
              (eq (vla-get-isXRef %) :vlax-true)
            )
           )
-          ((and
+          ((and 
              (= 16 (logand Bit 16))
              (not (wcmatch nam "[*]*"))
            )
           )
-          ((and
+          ((and 
              (= 32 (logand Bit 32))
              (= con "BLOCK")
              (eq (vla-get-isXRef %) :vlax-false)
@@ -3366,14 +3399,14 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_FilesLoader (list "CADPL-Pack-v1.lsp" "Brak.fas" "Nawias.lsp"))                     ;
 ; =========================================================================================== ;
-(defun cd:SYS_FilesLoader (Lst / err res)
-  (foreach % Lst
-    (if
-      (and
+(defun cd:SYS_FilesLoader (Lst / err res) 
+  (foreach % Lst 
+    (if 
+      (and 
         (setq err (vl-catch-all-apply (quote load) (list %)))
         (= (type err) (quote vl-catch-all-apply-error))
       )
-      (setq res (cons
+      (setq res (cons 
                   (cons % (vl-catch-all-error-message err))
                   res
                 )
@@ -3385,12 +3418,12 @@
 ; =========================================================================================== ;
 ; Lista sciezek do czcionek (Win/Acad) / List of paths to the fonts (Win/Acad)                ;
 ; =========================================================================================== ;
-(defun cd:SYS_FontPaths ()
-  (cons
+(defun cd:SYS_FontPaths () 
+  (cons 
     (findfile (strcat (getenv "WINDIR") "\\fonts"))
-    (vl-remove-if-not
-      (function
-        (lambda (%)
+    (vl-remove-if-not 
+      (function 
+        (lambda (%) 
           (wcmatch (strcase %) "*\\FONTS")
         )
       )
@@ -3415,19 +3448,19 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_GetDateTime "DDD\",\" DD MON YYYY - H:MMam/pm")                                     ;
 ; =========================================================================================== ;
-(defun cd:SYS_GetDateTime (Format)
+(defun cd:SYS_GetDateTime (Format) 
   (menucmd (strcat "m=$(edtime,$(getvar,DATE)," Format ")"))
 )
 ; =========================================================================================== ;
 ; Zwraca liste czcionek systemowych / Returns system font list                                ;
 ; =========================================================================================== ;
-(defun cd:SYS_GetFonts (/ lt reg ttfs ls shxs)
-  (setq lt (vl-remove-if-not
-             (function
+(defun cd:SYS_GetFonts (/ lt reg ttfs ls shxs) 
+  (setq lt (vl-remove-if-not 
+             (function 
                (lambda (%) (wcmatch % "*TrueType)"))
              )
-             (vl-registry-descendents
-               (setq reg (strcat "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\"
+             (vl-registry-descendents 
+               (setq reg (strcat "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\" 
                                  "Windows NT\\CurrentVersion\\Fonts"
                          )
                )
@@ -3435,21 +3468,21 @@
              )
            )
   )
-  (setq ttfs (mapcar
-               (function
-                 (lambda (%)
-                   (cons
+  (setq ttfs (mapcar 
+               (function 
+                 (lambda (%) 
+                   (cons 
                      (vl-string-right-trim " (TrueType)" %)
                      (vl-registry-read reg %)
                    )
                  )
                )
-               (vl-remove-if-not
-                 (function
-                   (lambda (%1 / %2)
-                     (and
-                       (not
-                         (wcmatch
+               (vl-remove-if-not 
+                 (function 
+                   (lambda (%1 / %2) 
+                     (and 
+                       (not 
+                         (wcmatch 
                            (setq %2 (vl-registry-read reg %1))
                            "*\\*"
                          )
@@ -3462,15 +3495,15 @@
                )
              )
         lt   (mapcar (quote car) ttfs)
-        ls   (vl-directory-files
-               (vl-filename-directory
+        ls   (vl-directory-files 
+               (vl-filename-directory 
                  (findfile "isocp.shx")
                )
                "*.shx"
              )
         shxs (mapcar (function (lambda (%) (cons % %))) ls)
   )
-  (list
+  (list 
     (append lt ls)
     (append ttfs shxs)
   )
@@ -3480,12 +3513,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_GetSymbols "cd:")                                                                   ;
 ; =========================================================================================== ;
-(defun cd:SYS_GetSymbols (Str / res)
-  (if
-    (setq res (vl-remove-if
-                (function
-                  (lambda (%)
-                    (if (not Str)
+(defun cd:SYS_GetSymbols (Str / res) 
+  (if 
+    (setq res (vl-remove-if 
+                (function 
+                  (lambda (%) 
+                    (if (not Str) 
                       (/= (strcase (substr % 1 4)) "*CD-")
                       (/= (strcase (substr % 1 (strlen Str))) (strcase Str))
                     )
@@ -3494,9 +3527,9 @@
                 (atoms-family 1)
               )
     )
-    (mapcar
-      (function
-        (lambda (%)
+    (mapcar 
+      (function 
+        (lambda (%) 
           (cons % (vl-symbol-value (read %)))
         )
       )
@@ -3540,12 +3573,12 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_MsgBox "Komunikat\nw 2 liniach" "Uwaga" 0 64)                                       ;
 ; =========================================================================================== ;
-(defun cd:SYS_MsgBox (Msg Title Btn Icon / WSs res)
+(defun cd:SYS_MsgBox (Msg Title Btn Icon / WSs res) 
   (setq WSs  (vlax-create-object "WScript.Shell")
         Icon (if (member Icon (list 16 32 48 64)) Icon 0)
         Btn  (if (member Btn (list 0 1 2 3 4 5 6)) Btn 0)
   )
-  (setq res (vlax-invoke-method WSs
+  (setq res (vlax-invoke-method WSs 
                                 "Popup"
                                 (if (not Msg) "" Msg)
                                 0
@@ -3572,19 +3605,19 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_ReadFile nil "data.ini"), (cd:SYS_ReadFile 10 "acad.lin")                           ;
 ; =========================================================================================== ;
-(defun cd:SYS_ReadFile (Line File / fn fd l res)
-  (if (setq fn (findfile File))
-    (if (setq fd (open fn "r"))
-      (progn
-        (if Line
-          (progn
+(defun cd:SYS_ReadFile (Line File / fn fd l res) 
+  (if (setq fn (findfile File)) 
+    (if (setq fd (open fn "r")) 
+      (progn 
+        (if Line 
+          (progn 
             (repeat Line (read-line fd))
             (setq res (read-line fd))
           )
-          (progn
+          (progn 
             (setq l T)
-            (while l
-              (setq res (cons
+            (while l 
+              (setq res (cons 
                           (setq l (read-line fd))
                           res
                         )
@@ -3610,9 +3643,9 @@
 ; =========================================================================================== ;
 ; (cd:SYS_RW "CADPL\\Tools\\MakeBlock" "Version" "1.0")                                       ;
 ; =========================================================================================== ;
-(defun cd:SYS_RW (Key Name Data / loc)
+(defun cd:SYS_RW (Key Name Data / loc) 
   (setq loc (strcat "HKEY_CURRENT_USER\\Software\\" Key))
-  (cond
+  (cond 
     ((and Name Data)
      (vl-registry-write loc Name Data)
     )
@@ -3627,15 +3660,15 @@
 ; =========================================================================================== ;
 ; Poczatek grupy operacji / Start of group operations                                         ;
 ; =========================================================================================== ;
-(defun cd:SYS_UndoBegin ()
+(defun cd:SYS_UndoBegin () 
   (cd:SYS_UndoEnd)
   (vla-StartUndoMark (cd:ACX_ADoc))
 )
 ; =========================================================================================== ;
 ; Koniec grupy operacji / End of group operations                                             ;
 ; =========================================================================================== ;
-(defun cd:SYS_UndoEnd ()
-  (if (= 8 (logand 8 (getvar "UNDOCTL")))
+(defun cd:SYS_UndoEnd () 
+  (if (= 8 (logand 8 (getvar "UNDOCTL"))) 
     (vla-EndUndoMark (cd:ACX_ADoc))
   )
 )
@@ -3649,15 +3682,32 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:SYS_WriteFile "d:\\Plik.txt" (list "linia 1" "linia 2" "linia 3") nil)                  ;
 ; =========================================================================================== ;
-(defun cd:SYS_WriteFile (Name Lst Mode / fd)
-  (if (setq fd (open Name (if Mode "a" "w")))
-    (progn
-      (foreach % Lst
+(defun cd:SYS_WriteFile (Name Lst Mode / fd) 
+  (if (setq fd (open Name (if Mode "a" "w"))) 
+    (progn 
+      (foreach % Lst 
         (write-line % fd)
       )
       (not (close fd))
     )
   )
+)
+; =========================================================================================== ;
+; Zmiana nazwy ucs na obiekt VLA / Convert ucs name to VLA-Object                             ;
+;  Ucs [STR] - nazwa uklad wspolrzednych / coordinate system name                             ;
+; ------------------------------------------------------------------------------------------- ;
+; (cd:UCS_Ucs2VLA "North")                                                                    ;
+; =========================================================================================== ;
+(defun cd:UCS_Ucs2VLA (Ucs / res) 
+  (and 
+    (tblsearch "UCS" Ucs)
+    (setq res (vla-item 
+                (cd:ACX_Ucss)
+                Ucs
+              )
+    )
+  )
+  res
 )
 ; =========================================================================================== ;
 ; Wybiera zadane obiekty / Select a desired object                                            ;
@@ -3681,30 +3731,30 @@
 ;   (list "INSERT") "Opcje Wyjdz" T nil                                                       ;
 ; )                                                                                           ;
 ; =========================================================================================== ;
-(defun cd:USR_EntSelObj (Msg Obj Init Lock Enter / res)
-  (while
-    (progn
+(defun cd:USR_EntSelObj (Msg Obj Init Lock Enter / res) 
+  (while 
+    (progn 
       (setvar "ERRNO" 0)
       (if Init (initget Init))
       (setq res (entsel (car Msg)))
-      (cond
+      (cond 
         ((= (getvar "ERRNO") 7)
          (princ (cadr Msg))
         )
         ((null res)
-         (if Enter
+         (if Enter 
            (not (princ (caddr Msg)))
            (princ (caddr Msg))
          )
         )
         ((listp res)
-         (if
-           (if Obj
+         (if 
+           (if Obj 
              (member (cdr (assoc 0 (entget (car res)))) Obj)
              T
            )
-           (if Lock
-             (if (vlax-write-enabled-p (car res))
+           (if Lock 
+             (if (vlax-write-enabled-p (car res)) 
                (not (setq res res))
                (princ (last Msg))
              )
@@ -3733,29 +3783,29 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:USR_GetCorner (getpoint) "\nWskaz drugi naroznik: " T)                                  ;
 ; =========================================================================================== ;
-(defun cd:USR_GetCorner (Pt Msg Mode / loop res lst)
+(defun cd:USR_GetCorner (Pt Msg Mode / loop res lst) 
   (setq loop T)
-  (while loop
-    (and
+  (while loop 
+    (and 
       (setq res (getcorner Pt Msg))
       (not (equal (car Pt) (car res)))
       (not (equal (cadr Pt) (cadr res)))
       (setq loop nil)
     )
   )
-  (if Mode
-    (progn
-      (setq lst (mapcar
-                  '(lambda (%1)
+  (if Mode 
+    (progn 
+      (setq lst (mapcar 
+                  '(lambda (%1) 
                      (mapcar (quote (eval %1)) (list Pt res))
                    )
                   '(car cadr)
                 )
       )
-      (mapcar
-        '(lambda (%1)
-           (mapcar
-             '(lambda (%2 %3)
+      (mapcar 
+        '(lambda (%1) 
+           (mapcar 
+             '(lambda (%2 %3) 
                 (apply (quote (eval %2)) %3)
               )
              %1
@@ -3780,10 +3830,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:USR_GetKeyWord "\nUtworz blok" '("Anonimowy" "Nazwa") "Nazwa")                          ;
 ; =========================================================================================== ;
-(defun cd:USR_GetKeyWord (Msg Keys Def / res key)
-  (setq key (mapcar
-              (function
-                (lambda (%)
+(defun cd:USR_GetKeyWord (Msg Keys Def / res key) 
+  (setq key (mapcar 
+              (function 
+                (lambda (%) 
                   (cd:STR_ReParse Keys %)
                 )
               )
@@ -3791,15 +3841,15 @@
             )
   )
   (initget (car key))
-  (setq res (vl-catch-all-apply
+  (setq res (vl-catch-all-apply 
               (quote getkword)
-              (list
-                (strcat
+              (list 
+                (strcat 
                   Msg
                   " ["
                   (cadr key)
                   "] <"
-                  (setq Def (if (not (member Def Keys))
+                  (setq Def (if (not (member Def Keys)) 
                               (car Keys)
                               Def
                             )
@@ -3809,7 +3859,7 @@
               )
             )
   )
-  (if res
+  (if res 
     (if (= (type res) (quote STR)) res)
     Def
   )
@@ -3823,13 +3873,13 @@
 ; (cd:USR_GetPoint "\nWskaz punkt: " 1 nil)                                                   ;
 ; (cd:USR_GetPoint "\nWskaz drugi punkt: " 32 '(5 10 0))                                      ;
 ; =========================================================================================== ;
-(defun cd:USR_GetPoint (Msg Bit Pt / res)
+(defun cd:USR_GetPoint (Msg Bit Pt / res) 
   (if Bit (initget Bit))
-  (if
-    (listp
-      (setq res (vl-catch-all-apply
+  (if 
+    (listp 
+      (setq res (vl-catch-all-apply 
                   (quote getpoint)
-                  (if Pt
+                  (if Pt 
                     (list Pt Msg)
                     (list Msg)
                   )
@@ -3847,8 +3897,8 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:XDT_GetXData (car (entsel)) "CADPL")                                                    ;
 ; =========================================================================================== ;
-(defun cd:XDT_GetXData (Ename App)
-  (if App
+(defun cd:XDT_GetXData (Ename App) 
+  (if App 
     (cadr (assoc -3 (entget Ename (list App))))
     (cdr (assoc -3 (entget Ename (list "*"))))
   )
@@ -3861,10 +3911,10 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:XDT_PutXData (car (entsel)) "CADPL" '((1000 . "X") (1070 . 5)))                         ;
 ; =========================================================================================== ;
-(defun cd:XDT_PutXData (Ename App Data)
+(defun cd:XDT_PutXData (Ename App Data) 
   (regapp App)
-  (entmod
-    (append
+  (entmod 
+    (append 
       (entget Ename)
       (list (list -3 (cons App Data)))
     )
@@ -3878,15 +3928,15 @@
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:XDT_RemoveXData (car (entsel)) "CADPL")                                                 ;
 ; =========================================================================================== ;
-(defun cd:XDT_RemoveXData (Ename App)
-  (if
-    (and
+(defun cd:XDT_RemoveXData (Ename App) 
+  (if 
+    (and 
       App
       (cd:XDT_GetXData Ename App)
     )
     (entmod (list (cons -1 Ename) (list -3 (list App))))
-    (foreach %
-      (mapcar
+    (foreach % 
+      (mapcar 
         (quote car)
         (cd:XDT_GetXData Ename nil)
       )
@@ -3895,13 +3945,13 @@
   )
 )
 ; =========================================================================================== ;
-(if
-  (and
+(if 
+  (and 
     (setq % (cd:SYS_ReadFile 2 "CADPL-Pack-v1.lsp"))
     (/= % -1)
   )
-  (princ
-    (strcat
+  (princ 
+    (strcat 
       "\n-- CADPL-Pack-v1.lsp ("
       (substr % 5 10)
       ") - http://forum.cad.pl (R.I.P.) --"
