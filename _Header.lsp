@@ -1,6 +1,6 @@
 ;;; ======================================================================================= ;;;
 ;;; CADPL-Pack-v1.lsp                                                                       ;;;
-;;; [2024-06-19]                                                                            ;;;
+;;; [2025-03-02]                                                                            ;;;
 ;;; ======================================================================================= ;;;
 
 ; [ACX] ===================================================================================== ;
@@ -13,6 +13,7 @@
 ; cd:ACX_AddTable         - Tworzy obiekt typu ACAD_TABLE / Creates a ACAD_TABLE object       ;
 ; cd:ACX_AddText          - Tworzy obiekt typu TEXT / Creates a TEXT object                   ;
 ; cd:ACX_AddTextStyle     - Tworzy nowy stylu tekstu / Creates a new text style               ;
+; cd:ACX_AddUcs           - Tworzy obiekt typu UCS / Creates a UCS object                     ;
 ; cd:ACX_AddViewport      - Tworzy obiekt typu VIEWPORT / Creates a VIEWPORT object           ;
 ; cd:ACX_AddXline         - Tworzy obiekt typu XLINE / Creates a XLINE object                 ;
 ; cd:ACX_ADoc             - Aktywny dokument / Active document                                ;
@@ -27,6 +28,7 @@
 ; cd:ACX_Paper            - Obszar papieru / Paper space                                      ;
 ; cd:ACX_SetProp          - Zmienia cechy obiektu VLA / Sets the property of VLA-Object       ;
 ; cd:ACX_TextStyles       - Kolekcja TextStyles / TextStyles collection                       ;
+; cd:ACX_Ucss             - Kolekcja Ucss / Ucss collection                                   ;
 ; cd:ACX_Views            - Kolekcja Views / Views collection                                 ;
 ;                                                                                             ;
 ; [BLK] ===================================================================================== ;
@@ -52,8 +54,8 @@
 ;                                                                                             ;
 ; [CON] ===================================================================================== ;
 ; cd:CON_All2Str          - Zmiana elem. listy na lancuchy / Convert list elem. onto strings  ;
-; cd:CON_ObjConv          - Konwertuje obiekt / Convert object                                ;
 ; cd:CON_List2Value       - Zmiana listy na lancuch tekstowy / Convert list onto text string  ;
+; cd:CON_ObjConv          - Konwertuje obiekt / Convert object                                ;
 ; cd:CON_Real2Str         - Konwertuje liczbe na tekst / Converts number to a string          ;
 ; cd:CON_TransMatrix      - Macierz transformacji ukl. wsp. / The coor. transformation matrix ;
 ; cd:CON_Value2List       - Zmiana lancucha tekstow. na liste / Convert string into list elem.;
@@ -154,6 +156,9 @@
 ; cd:SYS_UndoBegin        - Poczatek grupy operacji / Start of group operations               ;
 ; cd:SYS_UndoEnd          - Koniec grupy operacji / End of group operations                   ;
 ; cd:SYS_WriteFile        - Zapisuje plik tekstowy / Writes the text file                     ;
+;                                                                                             ;
+; [UCS] ===================================================================================== ;
+; cd:UCS_Ucs2VLA          - Zmiana nazwy ucs na obiekt VLA / Convert ucs name to VLA-Object   ;
 ;                                                                                             ;
 ; [USR] ===================================================================================== ;
 ; cd:USR_EntSelObj        - Wybiera zadane obiekty / Select a desired object                  ;
