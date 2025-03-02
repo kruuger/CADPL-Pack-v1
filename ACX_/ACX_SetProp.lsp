@@ -1,6 +1,6 @@
 ; =========================================================================================== ;
 ; Zmienia cechy obiektu VLA / Sets the property of VLA-Object                                 ;
-;  Obj [ENAME/VLA-Object] - obiekt VLA lub entycja / VLA-Object or entity name                ;
+;  Obj [ENAME/VLA-Object] - entycja lub obiekt VLA / entity name or VLA-Object                ;
 ;  Lst [LIST] - lista cech par kropkowych / list of dotted pairs properties                   ;
 ; ------------------------------------------------------------------------------------------- ;
 ; (cd:ACX_SetProp  (entlast) '(("LineType" . "BLA")("Color" . 1)("Layer" . "0")))             ;
